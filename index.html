@@ -369,6 +369,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
       <button class="ntab" onclick="go('overview')"><i class="ti ti-calendar-stats"></i>Jahresübersicht</button>
       <button class="ntab" onclick="go('stats')"><i class="ti ti-chart-pie"></i>Statistiken</button>
       <button class="ntab" onclick="go('recurring')"><i class="ti ti-repeat"></i>Daueraufträge</button>
+      <button class="ntab" onclick="go('settings')"><i class="ti ti-settings"></i>Einstellungen</button>
     </div>
     <div class="nright">
       <div class="monnav">
@@ -432,8 +433,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
           <div style="font-size:13px;font-weight:600;margin-bottom:12px">Einnahme erfassen</div>
           <div class="fgrid">
             <div class="fg"><div class="flbl">Datum</div><input type="date" class="fi" id="idate"></div>
-            <div class="fg"><div class="flbl">Kategorie</div>
-              <select class="fi fi-sel" id="ic"><option>Lohn</option><option>Kinderzulagen</option><option>Nebenverdienst</option><option>Rente</option><option>Bonus</option></select></div>
+            <div class="fg"><div class="flbl">Kategorie</div><select class="fi fi-sel" id="ic"></select></div>
             <div class="fg"><div class="flbl">Betrag (CHF)</div><input type="number" class="fi" id="ia" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
             <div class="fg" style="grid-column:1/-1"><div class="flbl">Notiz</div><input type="text" class="fi" id="inote" placeholder="Optional..."></div>
           </div>
@@ -442,7 +442,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
             <button class="btn btn-g" onclick="tf('iform')">Abbrechen</button>
           </div>
         </div>
-        <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Datum</th><th>Kategorie</th><th>Betrag</th><th>Notiz</th><th></th></tr></thead><tbody id="itbody"></tbody></table></div>
+        <div id="inc-list"></div>
       </div>
 
       <!-- AUSGABEN -->
@@ -455,11 +455,9 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
           <div style="font-size:13px;font-weight:600;margin-bottom:12px">Ausgabe erfassen</div>
           <div class="fgrid">
             <div class="fg"><div class="flbl">Datum</div><input type="date" class="fi" id="edate"></div>
-            <div class="fg"><div class="flbl">Kategorie</div>
-              <select class="fi fi-sel" id="ec"><option>Miete</option><option>Lebensmittel</option><option>Versicherungen</option><option>Auto</option><option>Streaming</option><option>Freizeit</option><option>Ferien</option><option>Kleidung</option><option>Gesundheit</option><option>Sonstige</option></select></div>
+            <div class="fg"><div class="flbl">Kategorie</div><select class="fi fi-sel" id="ec"></select></div>
             <div class="fg"><div class="flbl">Betrag (CHF)</div><input type="number" class="fi" id="ea" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
-            <div class="fg"><div class="flbl">Zahlungsart</div>
-              <select class="fi fi-sel" id="epay"><option>Banküberweisung</option><option>Kreditkarte</option><option>Bar</option><option>TWINT</option></select></div>
+            <div class="fg"><div class="flbl">Zahlungsart</div><select class="fi fi-sel" id="epay"></select></div>
             <div class="fg" style="grid-column:1/-1"><div class="flbl">Notiz</div><input type="text" class="fi" id="enote" placeholder="Optional..."></div>
           </div>
           <div style="display:flex;gap:8px">
@@ -471,10 +469,9 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
           <input type="text" class="fi" id="esrch" placeholder="Suchen..." style="max-width:180px;padding:7px 12px;font-size:13px" oninput="rExp()">
           <select class="fi fi-sel" id="efilt" style="max-width:160px;padding:7px 26px 7px 12px;font-size:13px" onchange="rExp()">
             <option value="">Alle Kategorien</option>
-            <option>Miete</option><option>Lebensmittel</option><option>Versicherungen</option><option>Auto</option><option>Streaming</option><option>Freizeit</option><option>Ferien</option><option>Kleidung</option><option>Gesundheit</option><option>Sonstige</option>
           </select>
         </div>
-        <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Datum</th><th>Kategorie</th><th>Zahlung</th><th>Betrag</th><th>Notiz</th><th></th></tr></thead><tbody id="etbody"></tbody></table></div>
+        <div id="exp-list"></div>
       </div>
 
       <!-- JAHRESÜBERSICHT -->
@@ -516,6 +513,38 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
         <div class="rec-grid" id="rec-list"></div>
       </div>
 
+      <!-- EINSTELLUNGEN -->
+      <div class="page" id="pg-settings">
+        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">Einstellungen</h2>
+        <div class="card" style="margin-bottom:14px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="ti ti-trending-down" style="color:var(--red)"></i>Ausgaben-Kategorien</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Ausgaben und Daueraufträgen.</div>
+          <div id="expCatList" style="margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="fi" id="newExpCat" placeholder="Neue Kategorie..." style="font-size:13px;padding:8px 12px">
+            <button class="btn btn-d" onclick="addCat('exp')"><i class="ti ti-plus"></i>Hinzufügen</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="ti ti-trending-up" style="color:var(--green)"></i>Einnahmen-Kategorien</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Einnahmen.</div>
+          <div id="incCatList" style="margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="fi" id="newIncCat" placeholder="Neue Kategorie..." style="font-size:13px;padding:8px 12px">
+            <button class="btn btn-s" onclick="addCat('inc')"><i class="ti ti-plus"></i>Hinzufügen</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="ti ti-credit-card" style="color:var(--blue)"></i>Zahlungsarten</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Ausgaben.</div>
+          <div id="payList" style="margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="fi" id="newPay" placeholder="Neue Zahlungsart..." style="font-size:13px;padding:8px 12px">
+            <button class="btn btn-p" onclick="addCat('pay')"><i class="ti ti-plus"></i>Hinzufügen</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -523,8 +552,8 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
     <button class="bntab active" id="bn-dash" onclick="go('dash')"><i class="ti ti-layout-dashboard"></i>Übersicht</button>
     <button class="bntab" id="bn-income" onclick="go('income')"><i class="ti ti-trending-up"></i>Einnahmen</button>
     <button class="bntab" id="bn-expenses" onclick="go('expenses')"><i class="ti ti-trending-down"></i>Ausgaben</button>
-    <button class="bntab" id="bn-overview" onclick="go('overview')"><i class="ti ti-calendar-stats"></i>Jahres</button>
     <button class="bntab" id="bn-recurring" onclick="go('recurring')"><i class="ti ti-repeat"></i>Aufträge</button>
+    <button class="bntab" id="bn-settings" onclick="go('settings')"><i class="ti ti-settings"></i>Einst.</button>
   </nav>
 </div>
 
@@ -575,7 +604,51 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
   </div>
 </div>
 
-<!-- USER MENU -->
+<!-- EDIT EINNAHME MODAL -->
+<div class="overlay" id="editIncOverlay" style="display:none" onclick="if(event.target===this)closeEditInc()">
+  <div class="modal-lg">
+    <div class="drag-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-size:15px;font-weight:600">Einnahme bearbeiten</h3>
+      <button class="btn btn-g btn-sm" onclick="closeEditInc()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fgrid">
+      <div class="fg"><label class="flbl">Datum</label><input type="date" class="fi" id="ei-date"></div>
+      <div class="fg"><label class="flbl">Kategorie</label><select class="fi fi-sel" id="ei-cat"></select></div>
+      <div class="fg"><label class="flbl">Betrag (CHF)</label><input type="number" class="fi" id="ei-amount" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="fg" style="grid-column:1/-1"><label class="flbl">Notiz</label><input type="text" class="fi" id="ei-note"></div>
+    </div>
+    <input type="hidden" id="ei-id">
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-s" onclick="saveEditInc()"><i class="ti ti-check"></i>Speichern</button>
+      <button class="btn btn-g" onclick="closeEditInc()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT AUSGABE MODAL -->
+<div class="overlay" id="editExpOverlay" style="display:none" onclick="if(event.target===this)closeEditExp()">
+  <div class="modal-lg">
+    <div class="drag-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-size:15px;font-weight:600">Ausgabe bearbeiten</h3>
+      <button class="btn btn-g btn-sm" onclick="closeEditExp()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fgrid">
+      <div class="fg"><label class="flbl">Datum</label><input type="date" class="fi" id="ee-date"></div>
+      <div class="fg"><label class="flbl">Kategorie</label><select class="fi fi-sel" id="ee-cat"></select></div>
+      <div class="fg"><label class="flbl">Betrag (CHF)</label><input type="number" class="fi" id="ee-amount" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="fg"><label class="flbl">Zahlungsart</label><select class="fi fi-sel" id="ee-pay"></select></div>
+      <div class="fg" style="grid-column:1/-1"><label class="flbl">Notiz</label><input type="text" class="fi" id="ee-note"></div>
+    </div>
+    <input type="hidden" id="ee-id">
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-d" onclick="saveEditExp()"><i class="ti ti-check"></i>Speichern</button>
+      <button class="btn btn-g" onclick="closeEditExp()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="userOverlay" style="display:none" onclick="if(event.target===this)closeUserMenu()">
   <div class="picker" style="max-width:360px">
     <div class="drag-handle"></div>
@@ -626,6 +699,12 @@ const CC={Miete:'#3b82f6',Lebensmittel:'#16a34a',Versicherungen:'#8b5cf6',Auto:'
 const CI={Miete:'ti-building',Lebensmittel:'ti-shopping-cart',Versicherungen:'ti-shield',Auto:'ti-car',Streaming:'ti-device-tv',Freizeit:'ti-confetti',Ferien:'ti-plane',Kleidung:'ti-shirt',Gesundheit:'ti-heart',Sonstige:'ti-dots',Lohn:'ti-briefcase',Kinderzulagen:'ti-baby-carriage',Nebenverdienst:'ti-coin',Rente:'ti-piggy-bank',Bonus:'ti-star'};
 const INTERVAL_LABEL={monthly:'Monatlich',quarterly:'Quartalsweise',biannual:'Halbjährlich',yearly:'Jährlich'};
 const AVATAR_COLORS=['#3b82f6','#8b5cf6','#ec4899','#16a34a','#f59e0b','#0891b2'];
+
+// Default categories
+const DEF_EXP_CATS=['Miete','Lebensmittel','Versicherungen','Auto','Streaming','Freizeit','Ferien','Kleidung','Gesundheit','Sonstige'];
+const DEF_INC_CATS=['Lohn','Kinderzulagen','Nebenverdienst','Rente','Bonus'];
+const DEF_PAY=['Banküberweisung','Kreditkarte','Bar','TWINT'];
+let CATS={exp:[...DEF_EXP_CATS],inc:[...DEF_INC_CATS],pay:[...DEF_PAY]};
 
 // ═══════════════════════════════════════════════════════════
 // STATE
@@ -770,16 +849,27 @@ async function loadAllData(){
   // Load all month data
   const {data:rows}=await sb.from('budget_data').select('*').eq('family_id',fid);
   D={};
-  (rows||[]).forEach(r=>{ D[r.month_key]=r.data; });
+  (rows||[]).forEach(r=>{ if(r.month_key!=='__settings__') D[r.month_key]=r.data; });
   // Load recurring
   const {data:rec}=await sb.from('recurring').select('*').eq('family_id',fid).single();
   REC=rec?.data||[];
+  // Load categories
+  const catRow=(rows||[]).find(r=>r.month_key==='__settings__');
+  if(catRow?.data?.cats) CATS=catRow.data.cats;
 }
 
 async function saveMonthData(key){
   if(!currentFamily) return;
   showSyncPill('saving');
   const {error}=await sb.from('budget_data').upsert({family_id:currentFamily.id,month_key:key,data:D[key]||{income:[],expenses:[]},updated_at:new Date().toISOString()},{onConflict:'family_id,month_key'});
+  if(error){showSyncPill('error');return;}
+  showSyncPill('saved');
+}
+
+async function saveCats(){
+  if(!currentFamily) return;
+  showSyncPill('saving');
+  const {error}=await sb.from('budget_data').upsert({family_id:currentFamily.id,month_key:'__settings__',data:{cats:CATS},updated_at:new Date().toISOString()},{onConflict:'family_id,month_key'});
   if(error){showSyncPill('error');return;}
   showSyncPill('saved');
 }
@@ -958,7 +1048,7 @@ function go(p){
   document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.bntab').forEach(x=>x.classList.remove('active'));
   document.getElementById('pg-'+p).classList.add('active');
-  const idx={dash:0,income:1,expenses:2,overview:3,stats:4,recurring:5}[p]||0;
+  const idx={dash:0,income:1,expenses:2,overview:3,stats:4,recurring:5,settings:6}[p]||0;
   document.querySelectorAll('.ntab')[idx]?.classList.add('active');
   const bn=document.getElementById('bn-'+p);if(bn)bn.classList.add('active');
   document.getElementById('mainScroll').scrollTo(0,0);
@@ -968,6 +1058,7 @@ function refresh(){render(ap);}
 function render(p){
   if(p==='dash')rDash();else if(p==='income')rInc();else if(p==='expenses')rExp();
   else if(p==='overview')rOv();else if(p==='stats')rStats();else if(p==='recurring')rRec();
+  else if(p==='settings')rSettings();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1019,19 +1110,78 @@ function rDash(){
 // ═══════════════════════════════════════════════════════════
 function rInc(){
   document.getElementById('ilbl').textContent=lbl();
+  // Populate form select with dynamic categories
+  const sel=document.getElementById('ic');
+  if(sel) sel.innerHTML=CATS.inc.map(c=>`<option>${c}</option>`).join('');
   const rows=[...md().income].sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('itbody').innerHTML=rows.length
-    ?rows.map(e=>`<tr><td>${fd(e.date)}</td><td><span class="badge" style="background:${CC[e.cat]||'#6b7280'}20;color:${CC[e.cat]||'#6b7280'}"><i class="ti ${CI[e.cat]||'ti-dots'}"></i> ${e.cat}</span></td><td style="font-weight:600;color:var(--green)">${fmt(e.amount)}</td><td style="color:var(--muted);font-size:12px">${e.note||'—'}</td><td><button class="btn btn-g btn-sm" onclick="del('i',${e.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('')
-    :`<tr><td colspan="5"><div class="empty"><i class="ti ti-inbox"></i>Keine Einnahmen für ${lbl()}</div></td></tr>`;
+  const el=document.getElementById('inc-list');
+  if(!rows.length){
+    el.innerHTML=`<div class="empty"><i class="ti ti-inbox"></i>Keine Einnahmen für ${lbl()}</div>`;return;
+  }
+  el.innerHTML=rows.map(e=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:var(--r);background:${CC[e.cat]||'#16a34a'}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ${CI[e.cat]||'ti-coin'}" style="color:${CC[e.cat]||'#16a34a'};font-size:18px"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:var(--green)">+ ${fmt(e.amount)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${e.cat} · ${fd(e.date)}</div>
+          ${e.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note}</div>`:''}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button onclick="openEditInc(${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
+            <i class="ti ti-edit"></i>
+          </button>
+          <button onclick="del('i',${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
+            <i class="ti ti-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 function rExp(){
   document.getElementById('elbl').textContent=lbl();
+  // Populate all dynamic selects
+  const ec=document.getElementById('ec');
+  if(ec) ec.innerHTML=CATS.exp.map(c=>`<option>${c}</option>`).join('');
+  const epay=document.getElementById('epay');
+  if(epay) epay.innerHTML=CATS.pay.map(p=>`<option>${p}</option>`).join('');
+  const efilt=document.getElementById('efilt');
+  if(efilt) efilt.innerHTML=`<option value="">Alle Kategorien</option>`+CATS.exp.map(c=>`<option>${c}</option>`).join('');
   const srch=(document.getElementById('esrch')?.value||'').toLowerCase();
-  const filt=document.getElementById('efilt')?.value||'';
-  const rows=[...md().expenses].filter(e=>(!filt||e.cat===filt)&&(!srch||e.cat.toLowerCase().includes(srch)||(e.note||'').toLowerCase().includes(srch))).sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('etbody').innerHTML=rows.length
-    ?rows.map(e=>`<tr><td>${fd(e.date)}</td><td><span class="badge" style="background:${CC[e.cat]||'#6b7280'}20;color:${CC[e.cat]||'#6b7280'}"><i class="ti ${CI[e.cat]||'ti-dots'}"></i> ${e.cat}</span>${e.recId?'<span class="badge" style="margin-left:4px;background:#f0f9ff;color:#0369a1"><i class="ti ti-repeat"></i></span>':''}</td><td style="font-size:12px;color:var(--muted)">${e.pay||'—'}</td><td style="font-weight:600;color:var(--red)">-${fmt(e.amount)}</td><td style="color:var(--muted);font-size:12px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.recName||e.note||'—'}</td><td><button class="btn btn-g btn-sm" onclick="del('e',${e.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('')
-    :`<tr><td colspan="6"><div class="empty"><i class="ti ti-inbox"></i>Keine Ausgaben für ${lbl()}</div></td></tr>`;
+  const filtVal=document.getElementById('efilt')?.value||'';
+  const rows=[...md().expenses]
+    .filter(e=>(!filtVal||e.cat===filtVal)&&(!srch||e.cat.toLowerCase().includes(srch)||(e.note||'').toLowerCase().includes(srch)))
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  const el=document.getElementById('exp-list');
+  if(!rows.length){
+    el.innerHTML=`<div class="empty"><i class="ti ti-inbox"></i>Keine Ausgaben für ${lbl()}</div>`;return;
+  }
+  el.innerHTML=rows.map(e=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:var(--r);background:${CC[e.cat]||'#6b7280'}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ${CI[e.cat]||'ti-dots'}" style="color:${CC[e.cat]||'#6b7280'};font-size:18px"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <div style="font-size:15px;font-weight:700;color:var(--red)">- ${fmt(e.amount)}</div>
+            ${e.recId?'<span style="font-size:10px;background:var(--bbg);color:var(--blue);padding:2px 6px;border-radius:10px;font-weight:600"><i class="ti ti-repeat"></i> Auto</span>':''}
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${e.cat} · ${fd(e.date)} · ${e.pay||''}</div>
+          ${e.recName||e.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.recName||e.note}</div>`:''}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button onclick="openEditExp(${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
+            <i class="ti ti-edit"></i>
+          </button>
+          <button onclick="del('e',${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
+            <i class="ti ti-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1135,6 +1285,11 @@ function deleteRec(id){
   REC=REC.filter(x=>x.id!==id);save(true);rRec();toast(`${r.name} gelöscht.`);
 }
 function openRecModal(id){
+  // Populate dynamic categories
+  const rcat=document.getElementById('r-cat');
+  if(rcat) rcat.innerHTML=CATS.exp.map(c=>`<option>${c}</option>`).join('');
+  const rpay=document.getElementById('r-pay');
+  if(rpay) rpay.innerHTML=CATS.pay.map(p=>`<option>${p}</option>`).join('');
   document.getElementById('r-edit-id').value=id||'';
   if(id){
     const r=REC.find(x=>x.id===id);if(!r)return;
@@ -1203,7 +1358,107 @@ function tf(id){
     if(id==='eform')document.getElementById('edate').value=d;
   }
 }
-function exportCSV(){
+// ═══════════════════════════════════════════════════════════
+// EDIT EINNAHME
+// ═══════════════════════════════════════════════════════════
+function openEditInc(id){
+  const e=md().income.find(x=>x.id===id);if(!e)return;
+  document.getElementById('ei-id').value=id;
+  document.getElementById('ei-date').value=e.date;
+  document.getElementById('ei-amount').value=e.amount;
+  document.getElementById('ei-note').value=e.note||'';
+  const sel=document.getElementById('ei-cat');
+  sel.innerHTML=CATS.inc.map(c=>`<option ${c===e.cat?'selected':''}>${c}</option>`).join('');
+  document.getElementById('editIncOverlay').style.display='flex';
+}
+function closeEditInc(){document.getElementById('editIncOverlay').style.display='none';}
+function saveEditInc(){
+  const id=parseFloat(document.getElementById('ei-id').value);
+  const amt=parseFloat(document.getElementById('ei-amount').value);
+  if(!amt||amt<=0){toast('Bitte einen gültigen Betrag eingeben.');return;}
+  const k=ck(), entry=D[k]?.income.find(x=>x.id===id);
+  if(!entry){toast('Eintrag nicht gefunden.');return;}
+  entry.date=document.getElementById('ei-date').value;
+  entry.cat=document.getElementById('ei-cat').value;
+  entry.amount=amt;
+  entry.note=document.getElementById('ei-note').value;
+  save();closeEditInc();rInc();toast('Einnahme aktualisiert ✓');
+}
+
+// ═══════════════════════════════════════════════════════════
+// EDIT AUSGABE
+// ═══════════════════════════════════════════════════════════
+function openEditExp(id){
+  const e=md().expenses.find(x=>x.id===id);if(!e)return;
+  document.getElementById('ee-id').value=id;
+  document.getElementById('ee-date').value=e.date;
+  document.getElementById('ee-amount').value=e.amount;
+  document.getElementById('ee-note').value=e.note||'';
+  const csel=document.getElementById('ee-cat');
+  csel.innerHTML=CATS.exp.map(c=>`<option ${c===e.cat?'selected':''}>${c}</option>`).join('');
+  const psel=document.getElementById('ee-pay');
+  psel.innerHTML=CATS.pay.map(p=>`<option ${p===e.pay?'selected':''}>${p}</option>`).join('');
+  document.getElementById('editExpOverlay').style.display='flex';
+}
+function closeEditExp(){document.getElementById('editExpOverlay').style.display='none';}
+function saveEditExp(){
+  const id=parseFloat(document.getElementById('ee-id').value);
+  const amt=parseFloat(document.getElementById('ee-amount').value);
+  if(!amt||amt<=0){toast('Bitte einen gültigen Betrag eingeben.');return;}
+  const k=ck(), entry=D[k]?.expenses.find(x=>x.id===id);
+  if(!entry){toast('Eintrag nicht gefunden.');return;}
+  entry.date=document.getElementById('ee-date').value;
+  entry.cat=document.getElementById('ee-cat').value;
+  entry.amount=amt;
+  entry.pay=document.getElementById('ee-pay').value;
+  entry.note=document.getElementById('ee-note').value;
+  save();closeEditExp();rExp();toast('Ausgabe aktualisiert ✓');
+}
+
+// ═══════════════════════════════════════════════════════════
+// EINSTELLUNGEN / KATEGORIEN
+// ═══════════════════════════════════════════════════════════
+function rSettings(){
+  renderCatList('expCatList','exp');
+  renderCatList('incCatList','inc');
+  renderCatList('payList','pay');
+}
+function renderCatList(elId,type){
+  const el=document.getElementById(elId);if(!el)return;
+  const items=CATS[type]||[];
+  const colors={exp:'var(--red)',inc:'var(--green)',pay:'var(--blue)'};
+  if(!items.length){el.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px 0;font-style:italic">Keine Einträge</div>`;return;}
+  el.innerHTML=items.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--border)">
+      <div style="width:8px;height:8px;border-radius:50%;background:${colors[type]};flex-shrink:0"></div>
+      <span style="flex:1;font-size:13px;font-weight:500">${c}</span>
+      <button onclick="deleteCat('${type}',${i})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px">
+        <i class="ti ti-trash"></i>
+      </button>
+    </div>`).join('');
+}
+function addCat(type){
+  const inputId={exp:'newExpCat',inc:'newIncCat',pay:'newPay'}[type];
+  const input=document.getElementById(inputId);
+  const val=input.value.trim();
+  if(!val){toast('Bitte einen Namen eingeben.');return;}
+  if(CATS[type].map(c=>c.toLowerCase()).includes(val.toLowerCase())){toast('Existiert bereits.');return;}
+  CATS[type].push(val);
+  input.value='';
+  saveCats();
+  rSettings();
+  toast(`"${val}" hinzugefügt ✓`);
+}
+function deleteCat(type,idx){
+  const name=CATS[type][idx];
+  if(!confirm(`"${name}" wirklich löschen?`))return;
+  CATS[type].splice(idx,1);
+  saveCats();
+  rSettings();
+  toast(`"${name}" gelöscht.`);
+}
+
+
   const m=md();
   const rows=[['Datum','Kategorie','Betrag','Notiz','Typ','Dauerauftrag'],...m.income.map(e=>[e.date,e.cat,e.amount,e.note,'Einnahme','']),...m.expenses.map(e=>[e.date,e.cat,e.amount,e.recName||e.note,'Ausgabe',e.recName?'Ja':''])];
   const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(';')).join('\n');

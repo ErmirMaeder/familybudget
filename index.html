@@ -1224,10 +1224,9 @@ function updMon(){
     const btn=document.getElementById(id);
     if(btn) btn.style.display=isCur?'none':'block';
   });
-  const now=new Date(),cur=now.getFullYear()===cy&&now.getMonth()+1===cm;
   const ind=document.getElementById('dind'),pulse=document.getElementById('dpulse'),txt=document.getElementById('dindtxt');
   if(ind&&pulse&&txt){
-    if(cur){ind.style.cssText='background:var(--bbg);color:var(--blue);display:flex';pulse.style.background='var(--blue)';txt.textContent='Aktueller Monat';}
+    if(isCur){ind.style.cssText='background:var(--bbg);color:var(--blue);display:flex';pulse.style.background='var(--blue)';txt.textContent='Aktueller Monat';}
     else{ind.style.cssText='background:var(--abg);color:var(--amber);display:flex';pulse.style.background='var(--amber)';txt.textContent='Archivierter Monat · '+lbl();}
   }
 }

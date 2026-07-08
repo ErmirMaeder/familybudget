@@ -441,6 +441,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
           <button class="ham-mon-btn" onclick="step(1);updateHamMon()" style="background:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.4)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
+          <button id="todayBtnHam" onclick="goToday();closeHam()" style="display:none;background:rgba(96,165,250,.2);border:none;color:#60a5fa;font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;margin-left:4px;white-space:nowrap">Heute</button>
         </div>
       </div>
     </div>
@@ -469,6 +470,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
         <button class="mnbtn" onclick="step(-1)"><i class="ti ti-chevron-left"></i></button>
         <div class="mnlabel" id="mnlbl" onclick="openPicker()">Mai 2026</div>
         <button class="mnbtn" onclick="step(1)"><i class="ti ti-chevron-right"></i></button>
+        <button class="mnbtn today-btn" id="todayBtnDesktop" onclick="goToday()" title="Heute" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);display:none;width:auto;padding:0 6px;border-radius:6px;background:rgba(96,165,250,.2)">Heute</button>
       </div>
       <span id="syncPill" class="sync-pill saved" style="display:none"><i class="ti ti-cloud-check"></i></span>
       <button class="user-btn" id="userBtn" onclick="openUserMenu()">?</button>
@@ -478,7 +480,10 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
     <button onclick="step(-1)" style="background:#2563eb;border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.4);flex-shrink:0">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <div class="mob-mnlbl" id="mnlbl2" onclick="openPicker()">Mai 2026</div>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:center">
+      <div class="mob-mnlbl" id="mnlbl2" onclick="openPicker()">Mai 2026</div>
+      <button id="todayBtnMobile" onclick="goToday()" style="display:none;background:rgba(96,165,250,.25);border:none;color:#60a5fa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;white-space:nowrap">Heute</button>
+    </div>
     <button onclick="step(1)" style="background:#2563eb;border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.4);flex-shrink:0">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
@@ -1199,12 +1204,26 @@ function bookNow(rid){
 // ═══════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════
+function goToday(){
+  const now=new Date();
+  cy=now.getFullYear(); cm=now.getMonth()+1;
+  updMon(); refresh();
+  toast('Zurück zu '+lbl());
+}
+
 function step(d){cm+=d;if(cm>12){cm=1;cy++;}if(cm<1){cm=12;cy--;}updMon();refresh();}
 function updMon(){
+  const now=new Date();
+  const isCur=now.getFullYear()===cy&&now.getMonth()+1===cm;
   const label=MS[cm-1]+' '+cy;
   const el=document.getElementById('mnlbl');if(el)el.textContent=label;
   const el2=document.getElementById('mnlbl2');if(el2)el2.textContent=label;
   const el3=document.getElementById('hamMonLbl');if(el3)el3.textContent=label;
+  // Show/hide "Heute" buttons — only visible when NOT on current month
+  ['todayBtnDesktop','todayBtnMobile','todayBtnHam'].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(btn) btn.style.display=isCur?'none':'block';
+  });
   const now=new Date(),cur=now.getFullYear()===cy&&now.getMonth()+1===cm;
   const ind=document.getElementById('dind'),pulse=document.getElementById('dpulse'),txt=document.getElementById('dindtxt');
   if(ind&&pulse&&txt){
@@ -1364,7 +1383,10 @@ function rExp(){
 function rOv(){
   const years=[...new Set(Object.keys(D).map(k=>parseInt(k)))].sort((a,b)=>b-a);
   if(!years.includes(cy))years.unshift(cy);
-  document.getElementById('ytabs').innerHTML=years.map(y=>`<button class="ytab ${y===cy?'active':''}" onclick="cy=${y};rOv()">${y}</button>`).join('');
+  const thisYear=new Date().getFullYear();
+  if(!years.includes(thisYear))years.unshift(thisYear);
+  document.getElementById('ytabs').innerHTML=years.map(y=>`<button class="ytab ${y===cy?'active':''}" onclick="cy=${y};rOv()">${y===thisYear?'📅 '+y:y}</button>`).join('')
+    +(cy!==thisYear?`<button class="ytab" onclick="cy=${thisYear};rOv()" style="background:var(--bbg);color:var(--blue);border-color:#bfdbfe">Aktuelles Jahr</button>`:'');
   document.getElementById('ovyrlbl').textContent=cy;
   const rows=[];let mx=1;
   for(let m=1;m<=12;m++){const t=ttl(mk(cy,m));mx=Math.max(mx,t.i,t.e);rows.push({m,t});}

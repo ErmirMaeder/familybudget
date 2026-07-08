@@ -434,9 +434,13 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
       <div class="ham-mon">
         <div class="ham-mon-label">Monat</div>
         <div class="ham-mon-row">
-          <button class="ham-mon-btn" onclick="step(-1);updateHamMon()">◀</button>
+          <button class="ham-mon-btn" onclick="step(-1);updateHamMon()" style="background:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.4)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
           <div class="ham-mon-lbl" id="hamMonLbl" onclick="closeHam();openPicker()">Mai 2026</div>
-          <button class="ham-mon-btn" onclick="step(1);updateHamMon()">▶</button>
+          <button class="ham-mon-btn" onclick="step(1);updateHamMon()" style="background:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.4)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -471,9 +475,13 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
     </div>
   </nav>
   <div class="mob-month-bar" id="mobMonthBar">
-    <button class="mob-mnbtn" onclick="step(-1)"><i class="ti ti-chevron-left"></i></button>
+    <button onclick="step(-1)" style="background:#2563eb;border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.4);flex-shrink:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
     <div class="mob-mnlbl" id="mnlbl2" onclick="openPicker()">Mai 2026</div>
-    <button class="mob-mnbtn" onclick="step(1)"><i class="ti ti-chevron-right"></i></button>
+    <button onclick="step(1)" style="background:#2563eb;border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.4);flex-shrink:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
   </div>
 
   <div class="main" id="mainScroll">

@@ -268,7 +268,14 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo"><i class="ti ti-home-dollar"></i></div>
+  <div class="splash-logo">
+    <svg width="46" height="46" viewBox="0 0 46 46" fill="none">
+      <path d="M23 6L4 20h4v20h10V28h10v12h10V20h4L23 6z" fill="white" opacity=".95"/>
+      <circle cx="32" cy="14" r="5" fill="#60a5fa"/>
+      <circle cx="37" cy="18" r="3.5" fill="#93c5fd"/>
+      <path d="M27 14c0-2.76 2.24-5 5-5" stroke="#fff" stroke-width="1.5" opacity=".4"/>
+    </svg>
+  </div>
   <div class="splash-title">FamilyBudget</div>
   <div class="splash-sub">Wird geladen…</div>
   <div class="splash-spinner"></div>
@@ -276,7 +283,13 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-logo"><i class="ti ti-home-dollar"></i></div>
+  <div class="login-logo">
+    <svg width="36" height="36" viewBox="0 0 46 46" fill="none">
+      <path d="M23 6L4 20h4v20h10V28h10v12h10V20h4L23 6z" fill="white" opacity=".95"/>
+      <circle cx="32" cy="14" r="5" fill="#60a5fa"/>
+      <circle cx="37" cy="18" r="3.5" fill="#93c5fd"/>
+    </svg>
+  </div>
   <div class="login-title">FamilyBudget</div>
   <div class="login-sub">Familienfinanzen einfach verwalten<br>auf allen deinen Geräten</div>
   <div class="login-box">
@@ -287,19 +300,19 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
     <!-- LOGIN FORM -->
     <div id="form-login">
       <div class="lg"><div class="ll">E-Mail</div>
-        <input class="li" id="l-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" inputmode="email"></div>
+        <input class="li" id="l-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <div class="lg"><div class="ll">Passwort</div>
-        <input class="li" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-      <button class="btn-login" id="btn-login" onclick="doLogin()">Anmelden →</button>
+        <input class="li" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button type="button" class="btn-login" id="btn-login" onclick="doLogin()">Anmelden →</button>
       <div id="login-err" class="login-err"></div>
     </div>
     <!-- REGISTER FORM -->
     <div id="form-register" style="display:none">
       <div class="lg"><div class="ll">E-Mail</div>
-        <input class="li" id="r-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" inputmode="email"></div>
+        <input class="li" id="r-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')doRegister()"></div>
       <div class="lg"><div class="ll">Passwort</div>
-        <input class="li" id="r-pass" type="password" placeholder="Mindestens 6 Zeichen" autocomplete="new-password"></div>
-      <button class="btn-login" id="btn-register" onclick="doRegister()">Konto erstellen →</button>
+        <input class="li" id="r-pass" type="password" placeholder="Mindestens 6 Zeichen" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <button type="button" class="btn-login" id="btn-register" onclick="doRegister()">Konto erstellen →</button>
       <div id="register-err" class="login-err"></div>
       <div id="register-ok" class="login-ok"></div>
     </div>
@@ -1130,11 +1143,11 @@ function rInc(){
           ${e.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note}</div>`:''}
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0">
-          <button onclick="openEditInc(${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
-            <i class="ti ti-edit"></i>
+          <button onclick="openEditInc(${e.id})" title="Bearbeiten" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">
+            <i class="ti ti-pencil"></i>
           </button>
-          <button onclick="del('i',${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
-            <i class="ti ti-trash"></i>
+          <button onclick="del('i',${e.id})" title="Löschen" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">
+            <i class="ti ti-x"></i>
           </button>
         </div>
       </div>
@@ -1173,11 +1186,11 @@ function rExp(){
           ${e.recName||e.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.recName||e.note}</div>`:''}
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0">
-          <button onclick="openEditExp(${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
-            <i class="ti ti-edit"></i>
+          <button onclick="openEditExp(${e.id})" title="Bearbeiten" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">
+            <i class="ti ti-pencil"></i>
           </button>
-          <button onclick="del('e',${e.id})" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
-            <i class="ti ti-trash"></i>
+          <button onclick="del('e',${e.id})" title="Löschen" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">
+            <i class="ti ti-x"></i>
           </button>
         </div>
       </div>
@@ -1263,10 +1276,10 @@ function rRec(){
     let actions='';
     if(due&&r.active&&!alreadyBooked&&!skipped){
       actions+=`<button class="btn btn-s btn-sm" onclick="bookNow(${r.id})"><i class="ti ti-bolt"></i>Buchen</button>`;
-      actions+=`<button class="btn btn-g btn-sm" onclick="skipRec(${r.id})"><i class="ti ti-ban"></i></button>`;
+      actions+=`<button class="btn btn-g btn-sm" onclick="skipRec(${r.id})"><i class="ti ti-ban"></i>Überspringen</button>`;
     } else if(skipped){actions+=`<button class="btn btn-warn btn-sm" onclick="skipRec(${r.id})"><i class="ti ti-refresh"></i>Rückgängig</button>`;}
-    actions+=`<button class="btn btn-g btn-sm" onclick="openRecModal(${r.id})"><i class="ti ti-edit"></i></button>`;
-    actions+=`<button class="btn btn-g btn-sm" onclick="deleteRec(${r.id})"><i class="ti ti-trash"></i></button>`;
+    actions+=`<button onclick="openRecModal(${r.id})" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:var(--rs);background:var(--bbg);border:none;color:var(--blue);cursor:pointer;font-size:12px;font-weight:500"><i class="ti ti-pencil" style="font-size:14px"></i>Bearbeiten</button>`;
+    actions+=`<button onclick="deleteRec(${r.id})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px"><i class="ti ti-x"></i></button>`;
     return `<div class="rec-card ${r.active?'':'inactive'}">
       <div class="rec-icon" style="background:${color}20"><i class="ti ${icon}" style="color:${color}"></i></div>
       <div class="rec-body">
@@ -1457,6 +1470,7 @@ function deleteCat(type,idx){
   rSettings();
   toast(`"${name}" gelöscht.`);
 }
+
 
 function exportCSV(){
   const m=md();

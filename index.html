@@ -1458,7 +1458,7 @@ function deleteCat(type,idx){
   toast(`"${name}" gelöscht.`);
 }
 
-
+function exportCSV(){
   const m=md();
   const rows=[['Datum','Kategorie','Betrag','Notiz','Typ','Dauerauftrag'],...m.income.map(e=>[e.date,e.cat,e.amount,e.note,'Einnahme','']),...m.expenses.map(e=>[e.date,e.cat,e.amount,e.recName||e.note,'Ausgabe',e.recName?'Ja':''])];
   const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(';')).join('\n');

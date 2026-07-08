@@ -99,11 +99,15 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 .brand{padding:0 14px;font-weight:700;font-size:14px;color:#fff;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0}
 .brand i{font-size:18px;color:#60a5fa}
 .brand-family{font-size:10px;color:rgba(255,255,255,.4);font-weight:400;margin-top:1px}
-.ntabs{display:flex;flex:1;height:100%;overflow-x:auto;scrollbar-width:none}
-.ntabs::-webkit-scrollbar{display:none}
-.ntab{display:flex;align-items:center;gap:5px;padding:0 12px;font-size:12px;color:rgba(255,255,255,.45);
+/* Desktop: scrollable tabs with visible thin scrollbar */
+.ntabs{display:flex;flex:1;height:100%;overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.ntabs::-webkit-scrollbar{height:3px}
+.ntabs::-webkit-scrollbar-track{background:transparent}
+.ntabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:3px}
+.ntab{display:flex;align-items:center;gap:5px;padding:0 14px;font-size:12px;color:rgba(255,255,255,.45);
   cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;background:none;
-  border-top:none;border-left:none;border-right:none;transition:all .15s}
+  border-top:none;border-left:none;border-right:none;transition:all .15s;height:100%;flex-shrink:0}
+.ntab:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.06)}
 .ntab.active{color:#60a5fa;border-bottom-color:#60a5fa}
 .nright{display:flex;align-items:center;gap:8px;padding:0 12px;flex-shrink:0}
 .monnav{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.1);border-radius:22px;padding:3px 4px}
@@ -112,6 +116,45 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 .mnlabel{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);min-width:70px;text-align:center;cursor:pointer}
 .user-btn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:11px;font-weight:700;cursor:pointer;border:none;flex-shrink:0}
+
+/* Hamburger button — mobile only */
+.hamburger-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;
+  padding:8px 12px;flex-direction:column;gap:5px;justify-content:center;align-items:center;flex-shrink:0}
+.hamburger-btn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px}
+
+/* Hamburger slide-in panel */
+.ham-menu{position:fixed;inset:0;z-index:500;display:none;pointer-events:none}
+.ham-menu.open{display:block;pointer-events:all}
+.ham-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px)}
+.ham-panel{position:absolute;left:0;top:0;bottom:0;width:280px;background:var(--nav);
+  display:flex;flex-direction:column;padding-top:var(--safe-top);
+  transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+  box-shadow:4px 0 30px rgba(0,0,0,.4)}
+.ham-menu.open .ham-panel{transform:translateX(0)}
+.ham-header{padding:16px 20px 14px;border-bottom:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:space-between}
+.ham-brand{display:flex;align-items:center;gap:10px}
+.ham-logo{width:38px;height:38px;background:linear-gradient(135deg,#3b82f6,#60a5fa);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ham-title{font-size:14px;font-weight:700;color:#fff}
+.ham-family-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
+.ham-close{background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;
+  border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ham-items{flex:1;overflow-y:auto;padding:8px 0}
+.ham-item{display:flex;align-items:center;gap:14px;padding:13px 20px;cursor:pointer;
+  color:rgba(255,255,255,.6);font-size:14px;font-weight:500;transition:all .15s;
+  border:none;background:none;width:100%;text-align:left}
+.ham-item:active{background:rgba(255,255,255,.1);color:#fff}
+.ham-item.active{color:#60a5fa;background:rgba(96,165,250,.12)}
+.ham-item-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0}
+.ham-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 20px}
+.ham-mon{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.ham-mon-label{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:8px;font-weight:600}
+.ham-mon-row{display:flex;align-items:center;gap:8px}
+.ham-mon-btn{background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+.ham-mon-lbl{flex:1;text-align:center;font-size:13px;font-weight:600;color:#fff;cursor:pointer}
 
 /* sync pill */
 .sync-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;
@@ -128,20 +171,14 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 .main-inner{padding:14px;max-width:1100px;margin:0 auto;padding-bottom:calc(80px + var(--safe-bottom))}
 .page{display:none}.page.active{display:block}
 
-/* ─── BOTTOM NAV ─── */
-.bottom-nav{display:none;background:var(--card);border-top:1px solid var(--border);
-  padding-bottom:var(--safe-bottom);flex-shrink:0}
+/* ─── MOBILE ─── */
 @media(max-width:640px){
   .ntabs{display:none}
-  .bottom-nav{display:flex}
   .monnav{display:none}
-  .main-inner{padding:12px;padding-bottom:calc(70px + var(--safe-bottom))}
+  .hamburger-btn{display:flex}
+  .bottom-nav{display:none !important}
+  .main-inner{padding:12px;padding-bottom:16px}
 }
-.bntab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;
-  font-size:9px;font-weight:600;color:var(--muted);cursor:pointer;background:none;border:none;
-  text-transform:uppercase;letter-spacing:.3px}
-.bntab.active{color:var(--blue)}
-.bntab i{font-size:20px}
 
 /* mobile month bar */
 .mob-month-bar{display:none;background:var(--nav);padding:6px 16px;padding-top:0;
@@ -370,7 +407,45 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 
 <!-- MAIN APP -->
 <div id="app">
+
+  <!-- Hamburger Menu Panel (mobile) -->
+  <div class="ham-menu" id="hamMenu">
+    <div class="ham-backdrop" onclick="closeHam()"></div>
+    <div class="ham-panel">
+      <div class="ham-header">
+        <div class="ham-brand">
+          <div class="ham-logo">🏠</div>
+          <div><div class="ham-title">FamilyBudget</div><div class="ham-family-lbl" id="hamFamilyLbl"></div></div>
+        </div>
+        <button class="ham-close" onclick="closeHam()">✕</button>
+      </div>
+      <div class="ham-items">
+        <button class="ham-item active" id="hm-dash" onclick="hamGo('dash')"><span class="ham-item-icon">🏠</span>Dashboard</button>
+        <button class="ham-item" id="hm-income" onclick="hamGo('income')"><span class="ham-item-icon">📈</span>Einnahmen</button>
+        <button class="ham-item" id="hm-expenses" onclick="hamGo('expenses')"><span class="ham-item-icon">📉</span>Ausgaben</button>
+        <button class="ham-item" id="hm-overview" onclick="hamGo('overview')"><span class="ham-item-icon">📅</span>Jahresübersicht</button>
+        <button class="ham-item" id="hm-stats" onclick="hamGo('stats')"><span class="ham-item-icon">📊</span>Statistiken</button>
+        <div class="ham-divider"></div>
+        <button class="ham-item" id="hm-recurring" onclick="hamGo('recurring')"><span class="ham-item-icon">🔁</span>Daueraufträge</button>
+        <div class="ham-divider"></div>
+        <button class="ham-item" id="hm-settings" onclick="hamGo('settings')"><span class="ham-item-icon">⚙️</span>Einstellungen</button>
+        <button class="ham-item" id="hm-help" onclick="hamGo('help')"><span class="ham-item-icon">❓</span>Hilfe</button>
+      </div>
+      <div class="ham-mon">
+        <div class="ham-mon-label">Monat</div>
+        <div class="ham-mon-row">
+          <button class="ham-mon-btn" onclick="step(-1);updateHamMon()">◀</button>
+          <div class="ham-mon-lbl" id="hamMonLbl" onclick="closeHam();openPicker()">Mai 2026</div>
+          <button class="ham-mon-btn" onclick="step(1);updateHamMon()">▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <nav class="nav">
+    <button class="hamburger-btn" onclick="openHam()">
+      <span></span><span></span><span></span>
+    </button>
     <div class="brand">
       <i class="ti ti-home-dollar"></i>
       <div><div>FamilyBudget</div><div class="brand-family" id="brandFamily"></div></div>
@@ -382,7 +457,8 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
       <button class="ntab" onclick="go('overview')"><i class="ti ti-calendar-stats"></i>Jahresübersicht</button>
       <button class="ntab" onclick="go('stats')"><i class="ti ti-chart-pie"></i>Statistiken</button>
       <button class="ntab" onclick="go('recurring')"><i class="ti ti-repeat"></i>Daueraufträge</button>
-      <button class="ntab" onclick="go('settings')"><i class="ti ti-settings"></i>Einstellungen</button>
+      <button class="ntab" onclick="go('settings')">⚙️ Einstellungen</button>
+      <button class="ntab" onclick="go('help')">❓ Hilfe</button>
     </div>
     <div class="nright">
       <div class="monnav">
@@ -558,15 +634,80 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
         </div>
       </div>
 
+      <!-- HILFE -->
+      <div class="page" id="pg-help">
+        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">❓ Hilfe & Anleitung</h2>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px">🚀 Schnellstart</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            <p style="margin-bottom:8px"><strong style="color:var(--text)">1. Einnahmen erfassen</strong> — Gehe auf "Einnahmen" → "+ Neue Einnahme". Trage Datum, Kategorie, Betrag und optional eine Notiz ein.</p>
+            <p style="margin-bottom:8px"><strong style="color:var(--text)">2. Ausgaben erfassen</strong> — Gehe auf "Ausgaben" → "+ Neue Ausgabe". Zusätzlich kannst du die Zahlungsart angeben.</p>
+            <p style="margin-bottom:8px"><strong style="color:var(--text)">3. Monat wechseln</strong> — Tippe auf den Monatsnamen oder nutze die Pfeile ◀ ▶. So kannst du vergangene Monate anschauen.</p>
+            <p><strong style="color:var(--text)">4. Dashboard</strong> — Die Übersichtsseite zeigt alle wichtigen Zahlen: Einnahmen, Ausgaben, Sparquote und Top-Kategorien.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px">🔘 Buttons erklärt</div>
+          <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:42px;height:42px;border-radius:var(--rs);background:var(--bbg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">✏️</div>
+              <div><strong>Bearbeiten</strong><br><span style="color:var(--muted)">Öffnet den Eintrag zum Ändern — z.B. falscher Betrag oder Kategorie.</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:42px;height:42px;border-radius:var(--rs);background:var(--rbg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">❌</div>
+              <div><strong>Löschen</strong><br><span style="color:var(--muted)">Entfernt den Eintrag permanent — kann nicht rückgängig gemacht werden.</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:42px;height:42px;border-radius:var(--rs);background:var(--gbg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚡</div>
+              <div><strong>Buchen</strong> (Daueraufträge)<br><span style="color:var(--muted)">Bucht einen Dauerauftrag manuell für den aktuellen Monat.</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px">🔁 Daueraufträge</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            <p style="margin-bottom:8px">Daueraufträge sind wiederkehrende Ausgaben wie Miete, Abonnements oder Versicherungen.</p>
+            <p style="margin-bottom:8px"><strong style="color:var(--text)">Automatisch:</strong> Beim Öffnen eines Monats werden fällige Daueraufträge automatisch als Ausgabe eingetragen.</p>
+            <p style="margin-bottom:8px"><strong style="color:var(--text)">Überspringen:</strong> Falls ein Dauerauftrag in einem Monat nicht fällig ist, kannst du ihn überspringen.</p>
+            <p><strong style="color:var(--text)">Intervalle:</strong> Monatlich, Quartalsweise, Halbjährlich oder Jährlich.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px">👨‍👩‍👧 Familie & Einladung</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            <p style="margin-bottom:8px"><strong style="color:var(--text)">Einladungscode:</strong> Tippe oben rechts auf deinen Avatar. Dort siehst du den 6-stelligen Code.</p>
+            <p style="margin-bottom:8px"><strong style="color:var(--text)">Code teilen:</strong> Tippe "Kopieren" und schicke ihn per WhatsApp oder SMS.</p>
+            <p><strong style="color:var(--text)">Beitreten:</strong> Familienmitglied registriert sich → "Familie beitreten" → Code eingeben → sofort gemeinsame Daten.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px">⚙️ Einstellungen</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            <p style="margin-bottom:8px">Eigene Kategorien für Einnahmen und Ausgaben hinzufügen oder löschen.</p>
+            <p>Neue Kategorien stehen sofort in allen Dropdowns zur Verfügung — auch für alle Familienmitglieder.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px">☁️ Synchronisierung</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            <p style="margin-bottom:8px">Alle Daten werden automatisch in der Cloud gespeichert — iPhone, MacBook, PC, überall.</p>
+            <p style="margin-bottom:8px">Das Cloud-Symbol oben rechts zeigt ob gerade gespeichert wird.</p>
+            <p>Falls Daten nicht aktuell sind: Avatar tippen → "Sync".</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <nav class="bottom-nav">
-    <button class="bntab active" id="bn-dash" onclick="go('dash')"><i class="ti ti-layout-dashboard"></i>Übersicht</button>
-    <button class="bntab" id="bn-income" onclick="go('income')"><i class="ti ti-trending-up"></i>Einnahmen</button>
-    <button class="bntab" id="bn-expenses" onclick="go('expenses')"><i class="ti ti-trending-down"></i>Ausgaben</button>
-    <button class="bntab" id="bn-recurring" onclick="go('recurring')"><i class="ti ti-repeat"></i>Aufträge</button>
-    <button class="bntab" id="bn-settings" onclick="go('settings')"><i class="ti ti-settings"></i>Einst.</button>
+    <button class="bntab active" id="bn-dash" onclick="go('dash')">🏠<span>Übersicht</span></button>
+    <button class="bntab" id="bn-income" onclick="go('income')">📈<span>Einnahmen</span></button>
+    <button class="bntab" id="bn-expenses" onclick="go('expenses')">📉<span>Ausgaben</span></button>
+    <button class="bntab" id="bn-overview" onclick="go('overview')">📅<span>Jahres</span></button>
+    <button class="bntab" id="bn-recurring" onclick="go('recurring')">🔁<span>Aufträge</span></button>
+    <button class="bntab" id="bn-settings" onclick="go('settings')">⚙️<span>Einst.</span></button>
+    <button class="bntab" id="bn-help" onclick="go('help')">❓<span>Hilfe</span></button>
   </nav>
 </div>
 
@@ -940,6 +1081,24 @@ function showApp(){
 function hideSplash(){document.getElementById('splash').style.display='none';}
 
 // ═══════════════════════════════════════════════════════════
+// HAMBURGER MENU (mobile)
+// ═══════════════════════════════════════════════════════════
+function openHam(){
+  const el=document.getElementById('hamMenu'); if(!el)return;
+  el.classList.add('open');
+  document.getElementById('hamFamilyLbl').textContent=currentFamily?.name||'';
+  updateHamMon();
+}
+function closeHam(){ document.getElementById('hamMenu').classList.remove('open'); }
+function updateHamMon(){ const el=document.getElementById('hamMonLbl'); if(el) el.textContent=MS[cm-1]+' '+cy; }
+function hamGo(p){
+  closeHam();
+  go(p);
+  document.querySelectorAll('.ham-item').forEach(x=>x.classList.remove('active'));
+  const el=document.getElementById('hm-'+p); if(el) el.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
 // USER MENU
 // ═══════════════════════════════════════════════════════════
 async function openUserMenu(){
@@ -1037,6 +1196,7 @@ function updMon(){
   const label=MS[cm-1]+' '+cy;
   const el=document.getElementById('mnlbl');if(el)el.textContent=label;
   const el2=document.getElementById('mnlbl2');if(el2)el2.textContent=label;
+  const el3=document.getElementById('hamMonLbl');if(el3)el3.textContent=label;
   const now=new Date(),cur=now.getFullYear()===cy&&now.getMonth()+1===cm;
   const ind=document.getElementById('dind'),pulse=document.getElementById('dpulse'),txt=document.getElementById('dindtxt');
   if(ind&&pulse&&txt){
@@ -1061,7 +1221,7 @@ function go(p){
   document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.bntab').forEach(x=>x.classList.remove('active'));
   document.getElementById('pg-'+p).classList.add('active');
-  const idx={dash:0,income:1,expenses:2,overview:3,stats:4,recurring:5,settings:6}[p]||0;
+  const idx={dash:0,income:1,expenses:2,overview:3,stats:4,recurring:5,settings:6,help:7}[p]||0;
   document.querySelectorAll('.ntab')[idx]?.classList.add('active');
   const bn=document.getElementById('bn-'+p);if(bn)bn.classList.add('active');
   document.getElementById('mainScroll').scrollTo(0,0);
@@ -1072,6 +1232,7 @@ function render(p){
   if(p==='dash')rDash();else if(p==='income')rInc();else if(p==='expenses')rExp();
   else if(p==='overview')rOv();else if(p==='stats')rStats();else if(p==='recurring')rRec();
   else if(p==='settings')rSettings();
+  else if(p==='help'){} // static page, nothing to render
 }
 
 // ═══════════════════════════════════════════════════════════

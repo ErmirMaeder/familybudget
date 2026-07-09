@@ -511,7 +511,16 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
         </div>
         <div class="ind" id="dind"><span class="pulse" id="dpulse"></span><span id="dindtxt"></span></div>
         <div id="rec-auto-notice" style="display:none;background:var(--abg);border:1px solid #fcd34d;border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:12px;align-items:center;gap:8px"></div>
+        <div id="rec-inc-notice" style="display:none;background:var(--gbg);border:1px solid #a7f3d0;border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--green);margin-bottom:12px;align-items:center;gap:8px"></div>
         <div class="sgrid" id="scards"></div>
+        <!-- Budget-Aufteilung nach Personen -->
+        <div class="card" id="personSplitCard" style="margin-bottom:14px;display:none">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+            <span>👥 Budget-Aufteilung</span>
+            <button onclick="go('settings')" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer">Personen bearbeiten →</button>
+          </div>
+          <div id="personSplitList"></div>
+        </div>
         <div class="charts2">
           <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">Ausgaben nach Kategorie</div>
             <div style="position:relative;height:170px"><canvas id="pieC"></canvas></div>
@@ -539,8 +548,21 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
       <div class="page" id="pg-income">
         <div class="secrow">
           <h2 style="font-size:18px;font-weight:600">Einnahmen – <span id="ilbl"></span></h2>
-          <button class="btn btn-s" onclick="tf('iform')"><i class="ti ti-plus"></i>Neue Einnahme</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-s" onclick="tf('iform')">+ Neue Einnahme</button>
+            <button class="btn btn-p" onclick="openRecIncModal(null)">🔁 Wiederkehrend</button>
+          </div>
         </div>
+
+        <!-- Wiederkehrende Einnahmen -->
+        <div class="card" style="margin-bottom:14px" id="recIncSummaryCard">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+            <span>🔁 Wiederkehrende Einnahmen</span>
+            <button onclick="openRecIncModal(null)" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer">+ Neu</button>
+          </div>
+          <div id="recIncList"></div>
+        </div>
+
         <div class="form-section" id="iform">
           <div style="font-size:13px;font-weight:600;margin-bottom:12px">Einnahme erfassen</div>
           <div class="fgrid">
@@ -628,6 +650,17 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
       <!-- EINSTELLUNGEN -->
       <div class="page" id="pg-settings">
         <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">Einstellungen</h2>
+
+        <!-- PERSONEN -->
+        <div class="card" style="margin-bottom:14px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">👥 Personen & Budget-Aufteilung</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Das verbleibende Budget wird gleichmässig auf alle Personen aufgeteilt und im Dashboard angezeigt.</div>
+          <div id="personList" style="margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="fi" id="newPersonName" placeholder="Name (z.B. Ermir)..." style="font-size:13px;padding:8px 12px" onkeydown="if(event.key==='Enter')addPerson()">
+            <button class="btn btn-p" onclick="addPerson()">+ Hinzufügen</button>
+          </div>
+        </div>
         <div class="card" style="margin-bottom:14px">
           <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">📉 Ausgaben-Kategorien</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Ausgaben und Daueraufträgen.</div>
@@ -828,6 +861,37 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
   </div>
 </div>
 
+<!-- WIEDERKEHRENDE EINNAHME MODAL -->
+<div class="overlay" id="recIncOverlay" style="display:none" onclick="if(event.target===this)closeRecIncModal()">
+  <div class="modal-lg">
+    <div class="drag-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-size:15px;font-weight:600" id="recIncModalTitle">Wiederkehrende Einnahme</h3>
+      <button class="btn btn-g btn-sm" onclick="closeRecIncModal()">✕</button>
+    </div>
+    <div class="fgrid">
+      <div class="fg" style="grid-column:1/-1"><label class="flbl">Bezeichnung *</label><input type="text" class="fi" id="ri-name" placeholder="z.B. Lohn Ermir, Rente..."></div>
+      <div class="fg"><label class="flbl">Betrag (CHF) *</label><input type="number" class="fi" id="ri-amount" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="fg"><label class="flbl">Kategorie</label><select class="fi fi-sel" id="ri-cat"></select></div>
+      <div class="fg"><label class="flbl">Am (Tag des Monats)</label><input type="number" class="fi" id="ri-day" min="1" max="31" value="1" inputmode="numeric"></div>
+      <div class="fg"><label class="flbl">Intervall</label>
+        <select class="fi fi-sel" id="ri-interval">
+          <option value="monthly">Monatlich</option><option value="quarterly">Quartalsweise</option>
+          <option value="biannual">Halbjährlich</option><option value="yearly">Jährlich</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flbl">Gültig ab *</label><input type="month" class="fi" id="ri-from"></div>
+      <div class="fg"><label class="flbl">Gültig bis (leer = unbegrenzt)</label><input type="month" class="fi" id="ri-until"></div>
+      <div class="fg" style="grid-column:1/-1"><label class="flbl">Notiz</label><input type="text" class="fi" id="ri-note" placeholder="Optional..."></div>
+    </div>
+    <input type="hidden" id="ri-edit-id">
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-s" onclick="saveRecInc()">✓ Speichern</button>
+      <button class="btn btn-g" onclick="closeRecIncModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="userOverlay" style="display:none" onclick="if(event.target===this)closeUserMenu()">
   <div class="picker" style="max-width:360px">
     <div class="drag-handle"></div>
@@ -904,7 +968,7 @@ let selEmoji={exp:'🏠',inc:'💰'};
 // ═══════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════
-let D={}, REC=[];
+let D={}, REC=[], REC_INC=[], PERSONS=[];
 let cy=new Date().getFullYear(), cm=new Date().getMonth()+1, py=cy, ap='dash';
 let pC,bC,sC,yrC;
 let currentUser=null, currentProfile=null, currentFamily=null;
@@ -1077,7 +1141,9 @@ async function loadAllData(){
   (rows||[]).forEach(r=>{ if(r.month_key!=='__settings__') D[r.month_key]=r.data; });
   // Load recurring
   const {data:rec}=await sb.from('recurring').select('*').eq('family_id',fid).single();
-  REC=rec?.data||[];
+  REC=rec?.data?.rec||rec?.data||[];
+  REC_INC=rec?.data?.recInc||[];
+  PERSONS=rec?.data?.persons||[];
   // Load categories
   const catRow=(rows||[]).find(r=>r.month_key==='__settings__');
   if(catRow?.data?.cats){
@@ -1110,7 +1176,7 @@ async function saveCats(){
 async function saveRecurring(){
   if(!currentFamily) return;
   showSyncPill('saving');
-  const {error}=await sb.from('recurring').upsert({family_id:currentFamily.id,data:REC,updated_at:new Date().toISOString()},{onConflict:'family_id'});
+  const {error}=await sb.from('recurring').upsert({family_id:currentFamily.id,data:{rec:REC,recInc:REC_INC,persons:PERSONS},updated_at:new Date().toISOString()},{onConflict:'family_id'});
   if(error){showSyncPill('error');return;}
   showSyncPill('saved');
 }
@@ -1342,9 +1408,13 @@ function render(p){
 function rDash(){
   updMon();
   const booked=autoBookRecurring();
+  const bookedInc=autoBookRecInc();
   const notice=document.getElementById('rec-auto-notice');
+  const noticeInc=document.getElementById('rec-inc-notice');
   if(booked.length){notice.style.display='flex';notice.innerHTML=`<i class="ti ti-repeat" style="font-size:14px;flex-shrink:0"></i><span><strong>${booked.length} Dauerauftrag${booked.length>1?'äge':''} automatisch eingetragen:</strong> ${booked.join(', ')}</span>`;}
   else{notice.style.display='none';}
+  if(bookedInc.length){noticeInc.style.display='flex';noticeInc.innerHTML=`<span>💰 <strong>${bookedInc.length} Einnahme${bookedInc.length>1?'n':''} automatisch eingetragen:</strong> ${bookedInc.join(', ')}</span>`;}
+  else{noticeInc.style.display='none';}
   const t=ttl(ck());
   const pct=t.i>0?Math.min(100,Math.round(t.s/t.i*100)):0;
   document.getElementById('dtitle').textContent=lbl();
@@ -1382,6 +1452,7 @@ function rDash(){
   pC=new Chart(document.getElementById('pieC'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});
   if(bC)bC.destroy();
   bC=new Chart(document.getElementById('barC'),{type:'bar',data:{labels:[lbl()],datasets:[{label:'Einnahmen',data:[t.i],backgroundColor:'#16a34a99',borderRadius:4},{label:'Ausgaben',data:[t.e],backgroundColor:'#dc262699',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'CHF '+(v/1000).toFixed(1)+'k'}}}}});
+  renderPersonSplit(t.r);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1389,9 +1460,9 @@ function rDash(){
 // ═══════════════════════════════════════════════════════════
 function rInc(){
   document.getElementById('ilbl').textContent=lbl();
-  // Populate form select with dynamic categories
   const sel=document.getElementById('ic');
   if(sel) sel.innerHTML=CATS.inc.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
+  renderRecIncList();
   const rows=[...md().income].sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('inc-list');
   if(!rows.length){
@@ -1694,6 +1765,7 @@ function saveEditExp(){
 // EINSTELLUNGEN / KATEGORIEN
 // ═══════════════════════════════════════════════════════════
 function rSettings(){
+  renderPersonList();
   renderCatList('expCatList','exp');
   renderCatList('incCatList','inc');
   renderCatList('payList','pay');
@@ -1743,7 +1815,165 @@ function deleteCat(type,idx){
 }
 
 
-function exportCSV(){
+// ═══════════════════════════════════════════════════════════
+// PERSONEN
+// ═══════════════════════════════════════════════════════════
+function renderPersonList(){
+  const el=document.getElementById('personList');if(!el)return;
+  if(!PERSONS.length){el.innerHTML=`<div style="font-size:12px;color:var(--muted);font-style:italic;padding:8px 0">Noch keine Personen — füge z.B. "Ermir" und "Larissa" hinzu.</div>`;return;}
+  el.innerHTML=PERSONS.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--border)">
+      <div style="width:34px;height:34px;border-radius:50%;background:${AVATAR_COLORS[i%AVATAR_COLORS.length]}22;color:${AVATAR_COLORS[i%AVATAR_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${p[0].toUpperCase()}</div>
+      <span style="flex:1;font-size:13px;font-weight:500">${p}</span>
+      <button onclick="deletePerson(${i})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">❌</button>
+    </div>`).join('');
+}
+function addPerson(){
+  const input=document.getElementById('newPersonName');
+  const val=input.value.trim();
+  if(!val){toast('Bitte einen Namen eingeben.');return;}
+  if(PERSONS.map(p=>p.toLowerCase()).includes(val.toLowerCase())){toast('Person existiert bereits.');return;}
+  PERSONS.push(val);input.value='';
+  save(true);renderPersonList();rDash();toast(`${val} hinzugefügt ✓`);
+}
+function deletePerson(idx){
+  const name=PERSONS[idx];
+  if(!confirm(`"${name}" wirklich entfernen?`))return;
+  PERSONS.splice(idx,1);save(true);renderPersonList();rDash();toast(`${name} entfernt.`);
+}
+function renderPersonSplit(restBudget){
+  const card=document.getElementById('personSplitCard');
+  const list=document.getElementById('personSplitList');
+  if(!card||!list)return;
+  if(!PERSONS.length){card.style.display='none';return;}
+  card.style.display='block';
+  const perPerson=restBudget/PERSONS.length;
+  const isPos=restBudget>=0;
+  list.innerHTML=`
+    <div style="background:${isPos?'var(--gbg)':'var(--rbg)'};border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:12px;color:var(--muted)">Restbudget aufgeteilt auf ${PERSONS.length} ${PERSONS.length===1?'Person':'Personen'}</span>
+      <span style="font-size:14px;font-weight:700;color:${isPos?'var(--green)':'var(--red)'}">${fmt(Math.abs(perPerson))} / Person</span>
+    </div>
+    ${PERSONS.map((p,i)=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="width:36px;height:36px;border-radius:50%;background:${AVATAR_COLORS[i%AVATAR_COLORS.length]}22;color:${AVATAR_COLORS[i%AVATAR_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${p[0].toUpperCase()}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${p}</div><div style="font-size:11px;color:var(--muted)">Anteil am Restbudget</div></div>
+        <div style="font-size:16px;font-weight:700;color:${isPos?'var(--green)':'var(--red)'}">${isPos?'+':''}${fmt(perPerson)}</div>
+      </div>`).join('')}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// WIEDERKEHRENDE EINNAHMEN
+// ═══════════════════════════════════════════════════════════
+function recIncDueInMonth(r,y,m){
+  if(!r.active)return false;
+  if(r.from&&mk(y,m)<r.from)return false;
+  if(r.until&&mk(y,m)>r.until)return false;
+  if(r.interval==='monthly')return true;
+  const[fy,fm]=r.from.split('-').map(Number);
+  const diff=(y-fy)*12+(m-fm);
+  if(r.interval==='quarterly')return diff%3===0;
+  if(r.interval==='biannual')return diff%6===0;
+  if(r.interval==='yearly')return diff%12===0;
+  return false;
+}
+function recIncAlreadyBooked(r,y,m){
+  const d=D[mk(y,m)]||{income:[]};
+  return d.income.some(e=>e.recIncId===r.id);
+}
+function autoBookRecInc(){
+  const k=ck();ensure(k);let booked=[];
+  REC_INC.forEach(r=>{
+    if(!r.active)return;
+    if(r.skipped&&r.skipped.includes(k))return;
+    if(!recIncDueInMonth(r,cy,cm))return;
+    if(recIncAlreadyBooked(r,cy,cm))return;
+    const day=Math.min(r.day,new Date(cy,cm,0).getDate());
+    const date=`${cy}-${String(cm).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    D[k].income.push({id:Date.now()+Math.random(),date,cat:r.cat,amount:r.amount,note:r.note||r.name,recIncId:r.id,recIncName:r.name});
+    booked.push(r.name);
+  });
+  if(booked.length){save();return booked;}return[];
+}
+function renderRecIncList(){
+  const el=document.getElementById('recIncList');if(!el)return;
+  const card=document.getElementById('recIncSummaryCard');
+  if(!REC_INC.length){if(card)card.style.display='none';return;}
+  if(card)card.style.display='block';
+  el.innerHTML=REC_INC.map(r=>{
+    const due=recIncDueInMonth(r,cy,cm);
+    const booked=recIncAlreadyBooked(r,cy,cm);
+    const color=catColor(r.cat);const emoji=catEmoji(r.cat)||'💰';
+    let badge=booked?'<span class="due-pill due-done">✓ Gebucht</span>':due?'<span class="due-pill due-soon">⏰ Fällig</span>':'<span class="due-pill due-future">Nicht fällig</span>';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:var(--rs);background:${color}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${emoji}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${r.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${INTERVAL_LABEL[r.interval]} · am ${r.day}.</div>
+        <div style="margin-top:4px">${badge}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:15px;font-weight:700;color:var(--green)">+${fmt(r.amount)}</div>
+        <div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end">
+          ${due&&!booked?`<button onclick="bookRecInc(${r.id})" style="padding:4px 8px;border-radius:var(--rs);background:var(--gbg);border:none;color:var(--green);cursor:pointer;font-size:11px;font-weight:600">Buchen</button>`:''}
+          <button onclick="openRecIncModal(${r.id})" style="width:28px;height:28px;border-radius:var(--rs);background:var(--bbg);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✏️</button>
+          <button onclick="deleteRecInc(${r.id})" style="width:28px;height:28px;border-radius:var(--rs);background:var(--rbg);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">❌</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function bookRecInc(id){
+  const r=REC_INC.find(x=>x.id===id);if(!r)return;
+  if(recIncAlreadyBooked(r,cy,cm)){toast('Bereits gebucht!');return;}
+  const k=ck();ensure(k);
+  const day=Math.min(r.day,new Date(cy,cm,0).getDate());
+  const date=`${cy}-${String(cm).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  D[k].income.push({id:Date.now(),date,cat:r.cat,amount:r.amount,note:r.note||r.name,recIncId:r.id,recIncName:r.name});
+  save();renderRecIncList();rInc();toast(`${r.name} für ${lbl()} gebucht.`);
+}
+function openRecIncModal(id){
+  const ricat=document.getElementById('ri-cat');
+  if(ricat)ricat.innerHTML=CATS.inc.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
+  document.getElementById('ri-edit-id').value=id||'';
+  if(id){
+    const r=REC_INC.find(x=>x.id===id);if(!r)return;
+    document.getElementById('recIncModalTitle').textContent='Einnahme bearbeiten';
+    document.getElementById('ri-name').value=r.name;document.getElementById('ri-amount').value=r.amount;
+    document.getElementById('ri-cat').value=r.cat;document.getElementById('ri-day').value=r.day;
+    document.getElementById('ri-interval').value=r.interval;document.getElementById('ri-from').value=r.from;
+    document.getElementById('ri-until').value=r.until||'';document.getElementById('ri-note').value=r.note||'';
+  } else {
+    document.getElementById('recIncModalTitle').textContent='Neue wiederkehrende Einnahme';
+    document.getElementById('ri-name').value='';document.getElementById('ri-amount').value='';
+    document.getElementById('ri-cat').value=CATS.inc[0]?(typeof CATS.inc[0]==='object'?CATS.inc[0].n:CATS.inc[0]):'Lohn';
+    document.getElementById('ri-day').value='1';document.getElementById('ri-interval').value='monthly';
+    document.getElementById('ri-from').value=mk(cy,cm);document.getElementById('ri-until').value='';document.getElementById('ri-note').value='';
+  }
+  document.getElementById('recIncOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('ri-name').focus(),100);
+}
+function closeRecIncModal(){document.getElementById('recIncOverlay').style.display='none';}
+function saveRecInc(){
+  const name=document.getElementById('ri-name').value.trim();
+  const amount=parseFloat(document.getElementById('ri-amount').value);
+  const from=document.getElementById('ri-from').value;
+  if(!name){toast('Bitte Bezeichnung eingeben.');return;}
+  if(!amount||amount<=0){toast('Bitte gültigen Betrag eingeben.');return;}
+  if(!from){toast('Bitte Startdatum angeben.');return;}
+  const editId=document.getElementById('ri-edit-id').value;
+  const data={name,amount,cat:document.getElementById('ri-cat').value,day:parseInt(document.getElementById('ri-day').value)||1,interval:document.getElementById('ri-interval').value,from,until:document.getElementById('ri-until').value,note:document.getElementById('ri-note').value,active:true,skipped:[]};
+  if(editId){const idx=REC_INC.findIndex(x=>x.id==editId);if(idx>=0){REC_INC[idx]={...REC_INC[idx],...data};toast(`${name} aktualisiert.`);}}
+  else{data.id=Date.now();REC_INC.push(data);toast(`${name} gespeichert.`);}
+  save(true);closeRecIncModal();renderRecIncList();rInc();
+}
+function deleteRecInc(id){
+  const r=REC_INC.find(x=>x.id===id);if(!r)return;
+  if(!confirm(`"${r.name}" wirklich löschen?`))return;
+  REC_INC=REC_INC.filter(x=>x.id!==id);save(true);renderRecIncList();rInc();toast(`${r.name} gelöscht.`);
+}
+
+
   const m=md();
   const rows=[['Datum','Kategorie','Betrag','Notiz','Typ','Dauerauftrag'],...m.income.map(e=>[e.date,e.cat,e.amount,e.note,'Einnahme','']),...m.expenses.map(e=>[e.date,e.cat,e.amount,e.recName||e.note,'Ausgabe',e.recName?'Ja':''])];
   const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(';')).join('\n');

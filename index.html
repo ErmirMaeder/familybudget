@@ -1363,17 +1363,21 @@ function rDash(){
   const recent=[...md().expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
   document.getElementById('recent').innerHTML=recent.length
     ?recent.map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="width:30px;height:30px;border-radius:var(--rs);background:${CC[e.cat]||'#6b7280'}20;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${CI[e.cat]||'ti-dots'}" style="color:${CC[e.cat]||'#6b7280'};font-size:13px"></i></div>
+      <div style="width:36px;height:36px;border-radius:var(--rs);background:${catColor(e.cat)}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">${catEmoji(e.cat)||'📦'}</div>
       <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.cat}</div><div style="font-size:11px;color:var(--muted)">${fd(e.date)}${e.note?' · '+e.note:''}</div></div>
       <div style="font-size:13px;font-weight:600;color:var(--red);flex-shrink:0">-${fmt(e.amount)}</div></div>`).join('')
     :`<div class="empty"><i class="ti ti-inbox"></i>Keine Ausgaben für ${lbl()}</div>`;
   const cats={};md().expenses.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
   document.getElementById('catprog').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([cat,amt])=>{
     const p2=t.e>0?Math.round(amt/t.e*100):0;
-    return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${cat}</span><span style="color:var(--muted)">${fmt(amt)}</span></div><div class="pw"><div class="pb" style="width:${p2}%;background:${CC[cat]||'#6b7280'}"></div></div></div>`;
+    return `<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+      <span style="font-size:15px">${catEmoji(cat)||'📦'}</span>
+      <span style="flex:1;font-size:12px;font-weight:500">${cat}</span>
+      <span style="font-size:12px;color:var(--muted)">${fmt(amt)}</span>
+    </div><div class="pw"><div class="pb" style="width:${p2}%;background:${catColor(cat)}"></div></div></div>`;
   }).join('');
-  const labels=Object.keys(cats),data=Object.values(cats),colors=labels.map(c=>CC[c]||'#6b7280');
-  document.getElementById('pieLeg').innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:${colors[i]}"></span>${l}</span>`).join('');
+  const labels=Object.keys(cats),data=Object.values(cats),colors=labels.map(c=>catColor(c));
+  document.getElementById('pieLeg').innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${catEmoji(l)||'📦'}</span>${l}</span>`).join('');
   if(pC)pC.destroy();
   pC=new Chart(document.getElementById('pieC'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});
   if(bC)bC.destroy();
@@ -1494,10 +1498,10 @@ function rStats(){
   const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
   const tot=Object.values(cats).reduce((a,b)=>a+b,0)||1;
   document.getElementById('topcats').innerHTML=sorted.length
-    ?sorted.map(([cat,amt])=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
-      <div style="width:26px;height:26px;border-radius:var(--rs);background:${CC[cat]||'#6b7280'}20;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${CI[cat]||'ti-dots'}" style="color:${CC[cat]||'#6b7280'};font-size:12px"></i></div>
-      <div style="flex:1"><div style="font-size:12px;font-weight:500">${cat}</div><div class="pw"><div class="pb" style="width:${Math.round(amt/tot*100)}%;background:${CC[cat]||'#6b7280'}"></div></div></div>
-      <div style="font-size:12px;font-weight:600;color:var(--muted)">${Math.round(amt/tot*100)}%</div></div>`).join('')
+    ?sorted.map(([cat,amt])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${catEmoji(cat)||'📦'}</span>
+      <div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:3px">${cat}</div><div class="pw"><div class="pb" style="width:${Math.round(amt/tot*100)}%;background:${catColor(cat)}"></div></div></div>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);min-width:32px;text-align:right">${Math.round(amt/tot*100)}%</div></div>`).join('')
     :`<div class="empty"><i class="ti ti-inbox"></i>Keine Ausgaben für ${lbl()}</div>`;
 }
 
@@ -1521,7 +1525,8 @@ function rRec(){
   if(!REC.length){document.getElementById('rec-list').innerHTML='<div class="empty" style="grid-column:1/-1"><i class="ti ti-repeat"></i>Noch keine Daueraufträge</div>';return;}
   document.getElementById('rec-list').innerHTML=REC.map(r=>{
     const due=recDueInMonth(r,cy,cm),alreadyBooked=recAlreadyBooked(r,cy,cm),skipped=(r.skipped||[]).includes(ck());
-    const color=CC[r.cat]||'#6b7280',icon=CI[r.cat]||'ti-dots';
+    const color=catColor(r.cat);
+    const emoji=catEmoji(r.cat)||'📦';
     let dueBadge='';
     if(!r.active)dueBadge=`<span class="due-pill due-done"><i class="ti ti-pause"></i>Pausiert</span>`;
     else if(!due)dueBadge=`<span class="due-pill due-future"><i class="ti ti-clock"></i>Nicht fällig</span>`;
@@ -1538,7 +1543,7 @@ function rRec(){
     actions+=`<button onclick="openRecModal(${r.id})" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--rs);background:var(--bbg);border:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--blue)">✏️ Bearbeiten</button>`;
     actions+=`<button onclick="deleteRec(${r.id})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px">❌</button>`;
     return `<div class="rec-card ${r.active?'':'inactive'}">
-      <div class="rec-icon" style="background:${color}20"><i class="ti ${icon}" style="color:${color}"></i></div>
+      <div class="rec-icon" style="background:${color}18;font-size:20px">${emoji}</div>
       <div class="rec-body">
         <div class="rec-name">${r.name}</div><div class="rec-amount" style="color:${color}">${fmt(r.amount)}</div>
         <div class="rec-meta"><span><i class="ti ti-calendar-event"></i>am ${r.day}.</span><span class="interval-badge"><i class="ti ti-repeat"></i>${INTERVAL_LABEL[r.interval]||r.interval}</span>${r.note?`<span>${r.note}</span>`:''}</div>

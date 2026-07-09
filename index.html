@@ -341,6 +341,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
         <input class="li" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button type="button" class="btn-login" id="btn-login" onclick="doLogin()">Anmelden →</button>
       <div id="login-err" class="login-err"></div>
+      <button type="button" onclick="switchTab('reset')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;margin-top:12px;width:100%;text-align:center">Passwort vergessen?</button>
     </div>
     <!-- REGISTER FORM -->
     <div id="form-register" style="display:none">
@@ -351,6 +352,16 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
       <button type="button" class="btn-login" id="btn-register" onclick="doRegister()">Konto erstellen →</button>
       <div id="register-err" class="login-err"></div>
       <div id="register-ok" class="login-ok"></div>
+    </div>
+    <!-- RESET FORM -->
+    <div id="form-reset" style="display:none">
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:14px">Gib deine E-Mail ein — du erhältst einen Link zum Zurücksetzen des Passworts.</div>
+      <div class="lg"><div class="ll">E-Mail</div>
+        <input class="li" id="reset-email" type="email" placeholder="name@beispiel.ch" inputmode="email" onkeydown="if(event.key==='Enter')doReset()"></div>
+      <button type="button" class="btn-login" id="btn-reset" onclick="doReset()">Link senden →</button>
+      <div id="reset-err" class="login-err"></div>
+      <div id="reset-ok" class="login-ok"></div>
+      <button type="button" onclick="switchTab('login')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;margin-top:12px;width:100%;text-align:center">← Zurück zum Login</button>
     </div>
   </div>
 </div>
@@ -618,30 +629,40 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
       <div class="page" id="pg-settings">
         <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">Einstellungen</h2>
         <div class="card" style="margin-bottom:14px">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="ti ti-trending-down" style="color:var(--red)"></i>Ausgaben-Kategorien</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">📉 Ausgaben-Kategorien</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Ausgaben und Daueraufträgen.</div>
           <div id="expCatList" style="margin-bottom:12px"></div>
-          <div style="display:flex;gap:8px">
-            <input type="text" class="fi" id="newExpCat" placeholder="Neue Kategorie..." style="font-size:13px;padding:8px 12px">
-            <button class="btn btn-d" onclick="addCat('exp')"><i class="ti ti-plus"></i>Hinzufügen</button>
+          <div style="background:var(--bg);border-radius:var(--rs);padding:12px;border:1px solid var(--border)">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Symbol wählen</div>
+            <div id="emojiPickerExp" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="fi" id="newExpCat" placeholder="Kategoriename..." style="font-size:13px;padding:8px 12px">
+              <button class="btn btn-d" onclick="addCat('exp')">+ Hinzufügen</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">Gewähltes Symbol: <span id="selEmojiExp" style="font-size:16px">🏠</span></div>
           </div>
         </div>
         <div class="card" style="margin-bottom:14px">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="ti ti-trending-up" style="color:var(--green)"></i>Einnahmen-Kategorien</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">📈 Einnahmen-Kategorien</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Einnahmen.</div>
           <div id="incCatList" style="margin-bottom:12px"></div>
-          <div style="display:flex;gap:8px">
-            <input type="text" class="fi" id="newIncCat" placeholder="Neue Kategorie..." style="font-size:13px;padding:8px 12px">
-            <button class="btn btn-s" onclick="addCat('inc')"><i class="ti ti-plus"></i>Hinzufügen</button>
+          <div style="background:var(--bg);border-radius:var(--rs);padding:12px;border:1px solid var(--border)">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Symbol wählen</div>
+            <div id="emojiPickerInc" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="fi" id="newIncCat" placeholder="Kategoriename..." style="font-size:13px;padding:8px 12px">
+              <button class="btn btn-s" onclick="addCat('inc')">+ Hinzufügen</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">Gewähltes Symbol: <span id="selEmojiInc" style="font-size:16px">💰</span></div>
           </div>
         </div>
         <div class="card">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px"><i class="ti ti-credit-card" style="color:var(--blue)"></i>Zahlungsarten</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">💳 Zahlungsarten</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Ausgaben.</div>
           <div id="payList" style="margin-bottom:12px"></div>
           <div style="display:flex;gap:8px">
             <input type="text" class="fi" id="newPay" placeholder="Neue Zahlungsart..." style="font-size:13px;padding:8px 12px">
-            <button class="btn btn-p" onclick="addCat('pay')"><i class="ti ti-plus"></i>Hinzufügen</button>
+            <button class="btn btn-p" onclick="addCat('pay')">+ Hinzufügen</button>
           </div>
         </div>
       </div>
@@ -829,9 +850,10 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
     <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Familienmitglieder</div>
     <div id="membersList"></div>
 
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn btn-g" style="flex:1;justify-content:center" onclick="syncNow()"><i class="ti ti-refresh"></i>Sync</button>
-      <button class="btn" style="flex:1;justify-content:center;background:var(--rbg);color:var(--red);border-color:var(--rbg)" onclick="doLogout()"><i class="ti ti-logout"></i>Abmelden</button>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-g" style="flex:1;justify-content:center;min-width:100px" onclick="syncNow()"><i class="ti ti-refresh"></i>Sync</button>
+      <button class="btn btn-g" style="flex:1;justify-content:center;min-width:100px" onclick="switchFamily()">🔄 Familie wechseln</button>
+      <button class="btn" style="width:100%;justify-content:center;background:var(--rbg);color:var(--red);border-color:var(--rbg)" onclick="doLogout()"><i class="ti ti-logout"></i>Abmelden</button>
     </div>
   </div>
 </div>
@@ -858,11 +880,26 @@ const CI={Miete:'ti-building',Lebensmittel:'ti-shopping-cart',Versicherungen:'ti
 const INTERVAL_LABEL={monthly:'Monatlich',quarterly:'Quartalsweise',biannual:'Halbjährlich',yearly:'Jährlich'};
 const AVATAR_COLORS=['#3b82f6','#8b5cf6','#ec4899','#16a34a','#f59e0b','#0891b2'];
 
-// Default categories
-const DEF_EXP_CATS=['Miete','Lebensmittel','Versicherungen','Auto','Streaming','Freizeit','Ferien','Kleidung','Gesundheit','Sonstige'];
-const DEF_INC_CATS=['Lohn','Kinderzulagen','Nebenverdienst','Rente','Bonus'];
+// Default categories with emojis
+const DEF_EXP_CATS=[
+  {n:'Miete',e:'🏠'},{n:'Lebensmittel',e:'🛒'},{n:'Versicherungen',e:'🛡️'},
+  {n:'Auto',e:'🚗'},{n:'Streaming',e:'📺'},{n:'Freizeit',e:'🎉'},
+  {n:'Ferien',e:'✈️'},{n:'Kleidung',e:'👕'},{n:'Gesundheit',e:'❤️'},{n:'Sonstige',e:'📦'}
+];
+const DEF_INC_CATS=[
+  {n:'Lohn',e:'💼'},{n:'Kinderzulagen',e:'👶'},{n:'Nebenverdienst',e:'💰'},
+  {n:'Rente',e:'🏦'},{n:'Bonus',e:'⭐'}
+];
 const DEF_PAY=['Banküberweisung','Kreditkarte','Bar','TWINT'];
+// CATS stores objects {n: name, e: emoji} for exp/inc, strings for pay
 let CATS={exp:[...DEF_EXP_CATS],inc:[...DEF_INC_CATS],pay:[...DEF_PAY]};
+
+// All available emojis for picker
+const ALL_EMOJIS=['🏠','🛒','🛡️','🚗','📺','🎉','✈️','👕','❤️','📦','💼','👶','💰','🏦','⭐',
+  '🍕','☕','🎓','💡','🏋️','🎮','🎵','📱','💻','🏥','🐕','🌿','🎁','🛁','⚡',
+  '🚌','🚂','🏪','🍔','🎭','📚','🔧','💈','🌊','🏔️','🎂','🥗','🍷','🎸','🏡'];
+
+let selEmoji={exp:'🏠',inc:'💰'};
 
 // ═══════════════════════════════════════════════════════════
 // STATE
@@ -939,6 +976,36 @@ function switchTab(t){
   document.getElementById('ltab-register').classList.toggle('active',t==='register');
   document.getElementById('form-login').style.display=t==='login'?'block':'none';
   document.getElementById('form-register').style.display=t==='register'?'block':'none';
+  document.getElementById('form-reset').style.display=t==='reset'?'block':'none';
+}
+
+async function doReset(){
+  const email=document.getElementById('reset-email').value.trim();
+  const err=document.getElementById('reset-err');
+  const ok=document.getElementById('reset-ok');
+  const btn=document.getElementById('btn-reset');
+  err.style.display='none';ok.style.display='none';
+  if(!email){err.textContent='Bitte E-Mail eingeben.';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Wird gesendet…';
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+  btn.disabled=false;btn.textContent='Link senden →';
+  if(error){err.textContent=error.message;err.style.display='block';return;}
+  ok.textContent='✓ E-Mail gesendet! Prüfe deinen Posteingang.';ok.style.display='block';
+}
+
+async function switchFamily(){
+  closeUserMenu();
+  if(!confirm('Familie wechseln? Du verlässt die aktuelle Familie und kannst einer neuen beitreten oder eine neue erstellen.')) return;
+  // Remove family_id from profile
+  await sb.from('profiles').update({family_id:null}).eq('id',currentUser.id);
+  currentProfile=null;currentFamily=null;D={};REC=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('app').classList.remove('visible');
+  // Reset family screen
+  document.getElementById('familyOptions').style.display='block';
+  document.getElementById('createFamilyBox').style.display='none';
+  document.getElementById('joinFamilyBox').style.display='none';
+  showFamilySetup();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1013,7 +1080,15 @@ async function loadAllData(){
   REC=rec?.data||[];
   // Load categories
   const catRow=(rows||[]).find(r=>r.month_key==='__settings__');
-  if(catRow?.data?.cats) CATS=catRow.data.cats;
+  if(catRow?.data?.cats){
+    const loaded=catRow.data.cats;
+    // Normalize: convert old string format to new object format
+    CATS={
+      exp:(loaded.exp||[]).map(c=>typeof c==='string'?{n:c,e:'📦'}:c),
+      inc:(loaded.inc||[]).map(c=>typeof c==='string'?{n:c,e:'💰'}:c),
+      pay:loaded.pay||[...DEF_PAY]
+    };
+  }
 }
 
 async function saveMonthData(key){
@@ -1144,6 +1219,13 @@ const md=()=>D[ck()]||{income:[],expenses:[]};
 const lbl=()=>MN[cm-1]+' '+cy;
 const fmt=v=>'CHF '+Number(v).toLocaleString('de-CH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fd=d=>{if(!d)return'';const p=d.split('-');return p[2]+'.'+p[1]+'.'+p[0];};
+// Get emoji for a category name
+function catEmoji(name){
+  const all=[...CATS.exp,...CATS.inc];
+  const found=all.find(c=>typeof c==='object'&&c.n===name);
+  return found?found.e:(CC[name]?'':'📦');
+}
+function catColor(name){return CC[name]||'#6b7280';}
 function ensure(k){if(!D[k])D[k]={income:[],expenses:[]};}
 function ttl(k){const d=D[k]||{income:[],expenses:[]};const i=d.income.reduce((a,x)=>a+x.amount,0);const e=d.expenses.reduce((a,x)=>a+x.amount,0);return{i,e,r:i-e,s:Math.max(0,i-e)};}
 
@@ -1305,7 +1387,7 @@ function rInc(){
   document.getElementById('ilbl').textContent=lbl();
   // Populate form select with dynamic categories
   const sel=document.getElementById('ic');
-  if(sel) sel.innerHTML=CATS.inc.map(c=>`<option>${c}</option>`).join('');
+  if(sel) sel.innerHTML=CATS.inc.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const rows=[...md().income].sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('inc-list');
   if(!rows.length){
@@ -1314,8 +1396,8 @@ function rInc(){
   el.innerHTML=rows.map(e=>`
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:42px;height:42px;border-radius:var(--r);background:${CC[e.cat]||'#16a34a'}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <i class="ti ${CI[e.cat]||'ti-coin'}" style="color:${CC[e.cat]||'#16a34a'};font-size:18px"></i>
+        <div style="width:42px;height:42px;border-radius:var(--r);background:${catColor(e.cat)}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">
+          ${catEmoji(e.cat)||`<i class="ti ${CI[e.cat]||'ti-coin'}" style="color:${catColor(e.cat)};font-size:18px"></i>`}
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:700;color:var(--green)">+ ${fmt(e.amount)}</div>
@@ -1333,11 +1415,11 @@ function rExp(){
   document.getElementById('elbl').textContent=lbl();
   // Populate all dynamic selects
   const ec=document.getElementById('ec');
-  if(ec) ec.innerHTML=CATS.exp.map(c=>`<option>${c}</option>`).join('');
+  if(ec) ec.innerHTML=CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const epay=document.getElementById('epay');
   if(epay) epay.innerHTML=CATS.pay.map(p=>`<option>${p}</option>`).join('');
   const efilt=document.getElementById('efilt');
-  if(efilt) efilt.innerHTML=`<option value="">Alle Kategorien</option>`+CATS.exp.map(c=>`<option>${c}</option>`).join('');
+  if(efilt) efilt.innerHTML=`<option value="">Alle Kategorien</option>`+CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const srch=(document.getElementById('esrch')?.value||'').toLowerCase();
   const filtVal=document.getElementById('efilt')?.value||'';
   const rows=[...md().expenses]
@@ -1350,8 +1432,8 @@ function rExp(){
   el.innerHTML=rows.map(e=>`
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:42px;height:42px;border-radius:var(--r);background:${CC[e.cat]||'#6b7280'}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <i class="ti ${CI[e.cat]||'ti-dots'}" style="color:${CC[e.cat]||'#6b7280'};font-size:18px"></i>
+        <div style="width:42px;height:42px;border-radius:var(--r);background:${catColor(e.cat)}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">
+          ${catEmoji(e.cat)||`<i class="ti ${CI[e.cat]||'ti-dots'}" style="color:${catColor(e.cat)};font-size:18px"></i>`}
         </div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -1475,7 +1557,7 @@ function deleteRec(id){
 function openRecModal(id){
   // Populate dynamic categories
   const rcat=document.getElementById('r-cat');
-  if(rcat) rcat.innerHTML=CATS.exp.map(c=>`<option>${c}</option>`).join('');
+  if(rcat) rcat.innerHTML=CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const rpay=document.getElementById('r-pay');
   if(rpay) rpay.innerHTML=CATS.pay.map(p=>`<option>${p}</option>`).join('');
   document.getElementById('r-edit-id').value=id||'';
@@ -1556,7 +1638,7 @@ function openEditInc(id){
   document.getElementById('ei-amount').value=e.amount;
   document.getElementById('ei-note').value=e.note||'';
   const sel=document.getElementById('ei-cat');
-  sel.innerHTML=CATS.inc.map(c=>`<option ${c===e.cat?'selected':''}>${c}</option>`).join('');
+  sel.innerHTML=CATS.inc.map(c=>`<option ${(typeof c==='object'?c.n:c)===e.cat?'selected':''}>${c}</option>`).join('');
   document.getElementById('editIncOverlay').style.display='flex';
 }
 function closeEditInc(){document.getElementById('editIncOverlay').style.display='none';}
@@ -1583,7 +1665,7 @@ function openEditExp(id){
   document.getElementById('ee-amount').value=e.amount;
   document.getElementById('ee-note').value=e.note||'';
   const csel=document.getElementById('ee-cat');
-  csel.innerHTML=CATS.exp.map(c=>`<option ${c===e.cat?'selected':''}>${c}</option>`).join('');
+  csel.innerHTML=CATS.exp.map(c=>`<option ${(typeof c==='object'?c.n:c)===e.cat?'selected':''}>${c}</option>`).join('');
   const psel=document.getElementById('ee-pay');
   psel.innerHTML=CATS.pay.map(p=>`<option ${p===e.pay?'selected':''}>${p}</option>`).join('');
   document.getElementById('editExpOverlay').style.display='flex';
@@ -1610,40 +1692,49 @@ function rSettings(){
   renderCatList('expCatList','exp');
   renderCatList('incCatList','inc');
   renderCatList('payList','pay');
+  renderEmojiPicker('emojiPickerExp','exp');
+  renderEmojiPicker('emojiPickerInc','inc');
+}
+function renderEmojiPicker(elId,type){
+  const el=document.getElementById(elId);if(!el)return;
+  el.innerHTML=ALL_EMOJIS.map(e=>`<button onclick="pickEmoji('${type}','${e}')" style="width:36px;height:36px;border-radius:8px;border:2px solid ${selEmoji[type]===e?'var(--blue)':'transparent'};background:${selEmoji[type]===e?'var(--bbg)':'var(--card)'};cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">${e}</button>`).join('');
+}
+function pickEmoji(type,emoji){
+  selEmoji[type]=emoji;
+  const lbl=document.getElementById(type==='exp'?'selEmojiExp':'selEmojiInc');
+  if(lbl)lbl.textContent=emoji;
+  renderEmojiPicker(type==='exp'?'emojiPickerExp':'emojiPickerInc',type);
 }
 function renderCatList(elId,type){
   const el=document.getElementById(elId);if(!el)return;
   const items=CATS[type]||[];
-  const colors={exp:'var(--red)',inc:'var(--green)',pay:'var(--blue)'};
   if(!items.length){el.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px 0;font-style:italic">Keine Einträge</div>`;return;}
-  el.innerHTML=items.map((c,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--border)">
-      <div style="width:8px;height:8px;border-radius:50%;background:${colors[type]};flex-shrink:0"></div>
-      <span style="flex:1;font-size:13px;font-weight:500">${c}</span>
-      <button onclick="deleteCat('${type}',${i})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px">
-        <i class="ti ti-trash"></i>
-      </button>
-    </div>`).join('');
+  el.innerHTML=items.map((c,i)=>{
+    const name=typeof c==='object'?c.n:c;
+    const emoji=typeof c==='object'?c.e:'';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--border)">
+      <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${emoji||'📦'}</span>
+      <span style="flex:1;font-size:13px;font-weight:500">${name}</span>
+      <button onclick="deleteCat('${type}',${i})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">❌</button>
+    </div>`;
+  }).join('');
 }
 function addCat(type){
   const inputId={exp:'newExpCat',inc:'newIncCat',pay:'newPay'}[type];
   const input=document.getElementById(inputId);
   const val=input.value.trim();
   if(!val){toast('Bitte einen Namen eingeben.');return;}
-  if(CATS[type].map(c=>c.toLowerCase()).includes(val.toLowerCase())){toast('Existiert bereits.');return;}
-  CATS[type].push(val);
-  input.value='';
-  saveCats();
-  rSettings();
-  toast(`"${val}" hinzugefügt ✓`);
+  const existing=CATS[type].map(c=>(typeof c==='object'?c.n:c).toLowerCase());
+  if(existing.includes(val.toLowerCase())){toast('Existiert bereits.');return;}
+  if(type==='pay'){CATS[type].push(val);}
+  else{CATS[type].push({n:val,e:selEmoji[type]||'📦'});}
+  input.value='';saveCats();rSettings();toast(`"${val}" hinzugefügt ✓`);
 }
 function deleteCat(type,idx){
-  const name=CATS[type][idx];
+  const item=CATS[type][idx];
+  const name=typeof item==='object'?item.n:item;
   if(!confirm(`"${name}" wirklich löschen?`))return;
-  CATS[type].splice(idx,1);
-  saveCats();
-  rSettings();
-  toast(`"${name}" gelöscht.`);
+  CATS[type].splice(idx,1);saveCats();rSettings();toast(`"${name}" gelöscht.`);
 }
 
 

@@ -598,6 +598,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
           </div>
         </div>
         <div class="ios-large-title" id="dtitle">Mai 2026</div>
+        <div id="dstatus-banner" style="margin:0 16px 4px;font-size:15px;color:var(--ios-label2)"></div>
         <div id="dind-wrap"></div>
         <div id="rec-auto-notice" style="display:none"></div>
         <div id="rec-inc-notice" style="display:none"></div>
@@ -1513,7 +1514,7 @@ function updMon(){
   const now=new Date();
   const isCur=now.getFullYear()===cy&&now.getMonth()+1===cm;
   const label=MS[cm-1]+' '+cy;
-  const el=document.getElementById('mnlbl');if(el)el.textContent=label;
+  const el=document.getElementById('mnlbl-txt');if(el)el.textContent=label;
   const el2=document.getElementById('mnlbl2');if(el2)el2.textContent=label;
   const el3=document.getElementById('hamMonLbl');if(el3)el3.textContent=label;
   // Show/hide "Heute" buttons — only visible when NOT on current month
@@ -1523,10 +1524,11 @@ function updMon(){
     btn.style.display=isCur?'none':'inline-flex';
     btn.style.alignItems='center';
   });
-  const ind=document.getElementById('dind'),pulse=document.getElementById('dpulse'),txt=document.getElementById('dindtxt');
-  if(ind&&pulse&&txt){
-    if(isCur){ind.style.cssText='background:var(--bbg);color:var(--blue);display:flex';pulse.style.background='var(--blue)';txt.textContent='Aktueller Monat';}
-    else{ind.style.cssText='background:var(--abg);color:var(--amber);display:flex';pulse.style.background='var(--amber)';txt.textContent='Archivierter Monat · '+lbl();}
+  const ind=document.getElementById('dind-wrap');
+  if(ind){
+    ind.innerHTML=isCur
+      ?`<div class="ios-notice ios-notice-blue" style="margin-top:8px"><span class="ios-notice-dot"></span><span>Aktueller Monat</span></div>`
+      :`<div class="ios-notice ios-notice-orange" style="margin-top:8px"><span class="ios-notice-dot"></span><span>Archivierter Monat · ${lbl()}</span></div>`;
   }
 }
 function openPicker(){py=cy;renderPicker();document.getElementById('pickerOverlay').style.display='flex';}
@@ -1577,11 +1579,13 @@ function rDash(){
   else{noticeInc.style.display='none';}
   const t=ttl(ck());
   const pct=t.i>0?Math.min(100,Math.round(t.s/t.i*100)):0;
-  document.getElementById('dtitle').textContent=lbl();if(document.getElementById('dtitle'))document.getElementById('dtitle').textContent=lbl();
-  document.getElementById('dsubtitle').textContent='Monatsübersicht · '+(currentFamily?.name||'');
-  document.getElementById('dstatus').innerHTML=t.r>=0
-    ?`<span style="background:var(--gbg);color:var(--green);padding:4px 10px;border-radius:var(--rs);font-size:12px;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-trending-up"></i>Budget im Plus</span>`
-    :`<span style="background:var(--rbg);color:var(--red);padding:4px 10px;border-radius:var(--rs);font-size:12px;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-trending-down"></i>Budget überschritten</span>`;
+  document.getElementById('dtitle').textContent=lbl();
+  const bf=document.getElementById('brandFamily');if(bf)bf.textContent=currentFamily?.name||'FamilyBudget';
+  // Status banner
+  const banner=document.getElementById('dstatus-banner');
+  if(banner) banner.innerHTML=t.r>=0
+    ?`<span style="color:var(--ios-green)">●</span> Budget im Plus · ${fmt(t.r)} verfügbar`
+    :`<span style="color:var(--ios-red)">●</span> Budget überschritten · ${fmt(Math.abs(t.r))}`;
   document.getElementById('scards').innerHTML=`
     <div class="metric-card"><div class="metric-card-label">Einnahmen</div><div class="metric-card-value mc-green">${fmt(t.i)}</div><div class="metric-card-sub">${md().income.length} Positionen</div><div class="metric-card-icon mc-green-bg">📈</div></div>
     <div class="metric-card"><div class="metric-card-label">Ausgaben</div><div class="metric-card-value mc-red">${fmt(t.e)}</div><div class="metric-card-sub">${md().expenses.length} Positionen</div><div class="metric-card-icon mc-red-bg">📉</div></div>

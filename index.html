@@ -6,925 +6,1078 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FamilyBudget">
-<meta name="theme-color" content="#16213e">
+<meta name="theme-color" content="#1a2744">
 <title>FamilyBudget</title>
 <link rel="manifest" href="./manifest.json">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#f4f4f0;--card:#ffffff;--nav:#16213e;--text:#1a1a2e;--muted:#6b7280;
-  --border:#e5e7eb;--green:#16a34a;--red:#dc2626;--blue:#2563eb;--amber:#d97706;
-  --gbg:#dcfce7;--rbg:#fee2e2;--bbg:#dbeafe;--abg:#fef3c7;
-  --r:14px;--rs:9px;
+  --ios-bg:#f2f2f7;
+  --ios-card:#ffffff;
+  --ios-blue:#007aff;
+  --ios-green:#34c759;
+  --ios-red:#ff3b30;
+  --ios-orange:#ff9500;
+  --ios-gray:#8e8e93;
+  --ios-gray2:#aeaeb2;
+  --ios-gray6:#f2f2f7;
+  --ios-sep:rgba(60,60,67,.18);
+  --ios-label:#000000;
+  --ios-label2:rgba(60,60,67,.6);
+  --ios-label3:rgba(60,60,67,.3);
+  --ios-fill:rgba(120,120,128,.2);
+  --ios-fill2:rgba(120,120,128,.16);
+  --nav-h:44px;
+  --tab-h:83px;
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
-html,body{height:100%;overflow:hidden}
-body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+@media(prefers-color-scheme:dark){:root{
+  --ios-bg:#000000;
+  --ios-card:#1c1c1e;
+  --ios-blue:#0a84ff;
+  --ios-green:#30d158;
+  --ios-red:#ff453a;
+  --ios-orange:#ff9f0a;
+  --ios-gray:#8e8e93;
+  --ios-gray2:#636366;
+  --ios-gray6:#1c1c1e;
+  --ios-sep:rgba(84,84,88,.65);
+  --ios-label:#ffffff;
+  --ios-label2:rgba(235,235,245,.6);
+  --ios-label3:rgba(235,235,245,.3);
+  --ios-fill:rgba(118,118,128,.36);
+  --ios-fill2:rgba(118,118,128,.32);
+}}
+html,body{height:100%;overflow:hidden;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
+  background:var(--ios-bg);color:var(--ios-label);font-size:17px;line-height:1.29}
 
-/* ─── SPLASH ─── */
-#splash{position:fixed;inset:0;background:linear-gradient(160deg,#16213e 0%,#1a1a2e 60%,#0f3460 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2000}
-.splash-logo{width:80px;height:80px;background:linear-gradient(135deg,#3b82f6,#60a5fa);border-radius:22px;
-  display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;margin-bottom:16px;
-  box-shadow:0 8px 32px rgba(59,130,246,.4)}
-.splash-title{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px}
-.splash-sub{font-size:13px;color:rgba(255,255,255,.4);margin-top:6px}
-.splash-spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.15);border-top-color:#60a5fa;
-  border-radius:50%;animation:spin .7s linear infinite;margin-top:32px}
+/* ══ SPLASH ══ */
+#splash{position:fixed;inset:0;background:#1a2744;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2000;gap:0}
+.splash-icon{width:100px;height:100px;background:#1a2744;border-radius:22px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);margin-bottom:20px}
+.splash-name{font-size:28px;font-weight:700;color:#fff;letter-spacing:-.5px}
+.splash-sub{font-size:14px;color:rgba(255,255,255,.45);margin-top:6px;margin-bottom:32px}
+.splash-spin{width:24px;height:24px;border:2.5px solid rgba(255,255,255,.2);
+  border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ─── LOGIN ─── */
-#loginScreen{position:fixed;inset:0;background:linear-gradient(160deg,#16213e 0%,#1a1a2e 60%,#0f3460 100%);
-  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:1000;
-  padding:24px;padding-top:calc(24px + var(--safe-top));overflow-y:auto}
-.login-logo{width:64px;height:64px;background:linear-gradient(135deg,#3b82f6,#60a5fa);border-radius:18px;
-  display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin-bottom:16px;
-  box-shadow:0 8px 32px rgba(59,130,246,.4)}
-.login-title{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px;margin-bottom:4px}
-.login-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:28px;text-align:center}
-.login-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:20px;
-  padding:24px;width:100%;max-width:380px;backdrop-filter:blur(20px)}
-.login-tabs{display:flex;background:rgba(0,0,0,.3);border-radius:10px;padding:3px;margin-bottom:20px;gap:3px}
-.ltab{flex:1;padding:8px;text-align:center;border-radius:8px;font-size:13px;font-weight:600;
-  color:rgba(255,255,255,.45);cursor:pointer;transition:all .2s;border:none;background:none}
-.ltab.active{background:#2563eb;color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.4)}
-.lg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
-.ll{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.5px;text-transform:uppercase}
-.li{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;
-  padding:12px 14px;font-size:15px;color:#fff;width:100%;-webkit-appearance:none}
-.li::placeholder{color:rgba(255,255,255,.3)}
-.li:focus{outline:none;border-color:#60a5fa;background:rgba(255,255,255,.15)}
-.li:-webkit-autofill{-webkit-box-shadow:0 0 0 30px rgba(37,99,235,.2) inset;-webkit-text-fill-color:#fff}
-.btn-login{width:100%;padding:13px;border-radius:10px;border:none;
-  background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-size:15px;font-weight:700;
-  cursor:pointer;margin-top:4px;box-shadow:0 4px 20px rgba(37,99,235,.4);transition:all .15s}
-.btn-login:active{transform:scale(.98)}
-.btn-login:disabled{opacity:.5;cursor:not-allowed}
-.login-err{background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);border-radius:8px;
-  padding:10px 14px;font-size:13px;color:#fca5a5;margin-top:10px;display:none}
-.login-ok{background:rgba(22,163,74,.2);border:1px solid rgba(22,163,74,.4);border-radius:8px;
-  padding:10px 14px;font-size:13px;color:#86efac;margin-top:10px;display:none}
-.divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:rgba(255,255,255,.25);font-size:12px}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+/* ══ LOGIN ══ */
+#loginScreen{position:fixed;inset:0;background:#1a2744;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:1000;padding:32px 24px;overflow-y:auto}
+.login-icon{width:80px;height:80px;background:#1a2744;border:2px solid rgba(255,255,255,.15);
+  border-radius:18px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.login-title{font-size:32px;font-weight:700;color:#fff;letter-spacing:-.5px;margin-bottom:4px}
+.login-sub{font-size:15px;color:rgba(255,255,255,.45);margin-bottom:36px;text-align:center;line-height:1.4}
+.login-segment{display:flex;background:rgba(255,255,255,.1);border-radius:9px;padding:2px;
+  margin-bottom:24px;width:100%;max-width:340px}
+.lseg{flex:1;padding:7px;text-align:center;border-radius:7px;font-size:13px;font-weight:600;
+  color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s;border:none;background:none}
+.lseg.active{background:rgba(255,255,255,.95);color:#1a2744;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.login-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;width:100%;max-width:340px;overflow:hidden;backdrop-filter:blur(20px)}
+.login-field{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:3px}
+.login-field:last-of-type{border-bottom:none}
+.lf-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.45);letter-spacing:.3px;text-transform:uppercase}
+.lf-input{background:none;border:none;color:#fff;font-size:16px;outline:none;width:100%;
+  font-family:inherit;-webkit-appearance:none}
+.lf-input::placeholder{color:rgba(255,255,255,.25)}
+.lf-input:-webkit-autofill{-webkit-box-shadow:0 0 0 30px rgba(255,255,255,.08) inset;-webkit-text-fill-color:#fff}
+.login-btn{width:100%;max-width:340px;margin-top:14px;padding:15px;border-radius:14px;border:none;
+  background:#007aff;color:#fff;font-size:17px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:opacity .15s}
+.login-btn:active{opacity:.8}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-err{max-width:340px;width:100%;margin-top:10px;padding:12px 16px;border-radius:12px;
+  background:rgba(255,59,48,.2);border:1px solid rgba(255,59,48,.35);
+  font-size:14px;color:#ff6b63;display:none;line-height:1.4}
+.login-ok{max-width:340px;width:100%;margin-top:10px;padding:12px 16px;border-radius:12px;
+  background:rgba(52,199,89,.15);border:1px solid rgba(52,199,89,.3);
+  font-size:14px;color:#30d158;display:none}
+.login-link{margin-top:14px;background:none;border:none;color:rgba(255,255,255,.4);
+  font-size:14px;cursor:pointer;font-family:inherit}
 
-/* ─── FAMILY SETUP ─── */
-#familyScreen{position:fixed;inset:0;background:linear-gradient(160deg,#16213e,#0f3460);
-  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:900;
-  padding:24px;overflow-y:auto}
-.setup-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:20px;
-  padding:24px;width:100%;max-width:400px}
-.setup-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
-.setup-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:20px}
-.setup-option{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;
-  padding:16px;cursor:pointer;margin-bottom:10px;transition:all .15s;display:flex;align-items:center;gap:12px}
-.setup-option:active{background:rgba(59,130,246,.2);border-color:#60a5fa}
-.setup-option i{font-size:22px;color:#60a5fa;flex-shrink:0}
-.setup-option-text{flex:1}
-.setup-option-title{font-size:14px;font-weight:600;color:#fff}
-.setup-option-desc{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px}
-.invite-code-display{background:rgba(96,165,250,.15);border:2px dashed #60a5fa;border-radius:12px;
-  padding:20px;text-align:center;margin:16px 0}
-.invite-code-display .code{font-size:36px;font-weight:800;letter-spacing:8px;color:#60a5fa;font-family:monospace}
-.invite-code-display .code-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:6px}
+/* ══ FAMILY SETUP ══ */
+#familyScreen{position:fixed;inset:0;background:#1a2744;display:none;
+  flex-direction:column;align-items:center;justify-content:center;z-index:900;
+  padding:32px 24px;overflow-y:auto}
+.setup-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;width:100%;max-width:380px;overflow:hidden}
+.setup-header{padding:20px 20px 0;margin-bottom:16px}
+.setup-title{font-size:20px;font-weight:700;color:#fff}
+.setup-sub{font-size:14px;color:rgba(255,255,255,.4);margin-top:4px}
+.setup-option{display:flex;align-items:center;gap:14px;padding:16px 20px;
+  cursor:pointer;border-bottom:1px solid rgba(255,255,255,.08);
+  background:none;border-left:none;border-right:none;border-top:none;
+  width:100%;text-align:left;transition:background .15s}
+.setup-option:last-child{border-bottom:none}
+.setup-option:active{background:rgba(255,255,255,.08)}
+.setup-opt-icon{width:40px;height:40px;border-radius:10px;background:#007aff;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.setup-opt-title{font-size:15px;font-weight:600;color:#fff}
+.setup-opt-desc{font-size:13px;color:rgba(255,255,255,.4);margin-top:2px}
+.setup-chevron{font-size:18px;color:rgba(255,255,255,.25);margin-left:auto}
+.invite-display{background:rgba(0,122,255,.15);border:2px dashed rgba(0,122,255,.5);
+  border-radius:14px;padding:20px;text-align:center;margin:0 20px 20px}
+.invite-code{font-size:38px;font-weight:800;letter-spacing:10px;color:#007aff;font-family:'SF Mono',monospace}
 
-/* ─── APP ─── */
+/* ══ MAIN APP ══ */
 #app{display:none;flex-direction:column;height:100%;height:100dvh}
 #app.visible{display:flex}
-.nav{background:var(--nav);display:flex;align-items:center;height:calc(56px + var(--safe-top));
-  padding-top:var(--safe-top);position:sticky;top:0;z-index:50;flex-shrink:0}
-.brand{padding:0 14px;font-weight:700;font-size:14px;color:#fff;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0}
-.brand i{font-size:18px;color:#60a5fa}
-.brand-family{font-size:10px;color:rgba(255,255,255,.4);font-weight:400;margin-top:1px}
-/* Desktop: scrollable tabs with visible thin scrollbar */
-.ntabs{display:flex;flex:1;height:100%;overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
-.ntabs::-webkit-scrollbar{height:3px}
-.ntabs::-webkit-scrollbar-track{background:transparent}
-.ntabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:3px}
-.ntab{display:flex;align-items:center;gap:5px;padding:0 14px;font-size:12px;color:rgba(255,255,255,.45);
-  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;background:none;
-  border-top:none;border-left:none;border-right:none;transition:all .15s;height:100%;flex-shrink:0}
-.ntab:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.06)}
-.ntab.active{color:#60a5fa;border-bottom-color:#60a5fa}
-.nright{display:flex;align-items:center;gap:8px;padding:0 12px;flex-shrink:0}
-.monnav{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.1);border-radius:22px;padding:3px 4px}
-.mnbtn{background:none;border:none;color:rgba(255,255,255,.55);cursor:pointer;width:28px;height:28px;
-  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
-.mnlabel{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);min-width:70px;text-align:center;cursor:pointer}
-.user-btn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:700;cursor:pointer;border:none;flex-shrink:0}
 
-/* Hamburger button — mobile only */
-.hamburger-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;
-  padding:8px 12px;flex-direction:column;gap:5px;justify-content:center;align-items:center;flex-shrink:0}
-.hamburger-btn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px}
+/* iOS Large Title Navigation */
+.ios-nav{background:rgba(242,242,247,.92);border-bottom:1px solid var(--ios-sep);
+  padding-top:var(--safe-top);flex-shrink:0;backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:50}
+@media(prefers-color-scheme:dark){.ios-nav{background:rgba(28,28,30,.92)}}
+.ios-nav-bar{height:var(--nav-h);display:flex;align-items:center;padding:0 16px;gap:8px}
+.ios-nav-title{font-size:17px;font-weight:600;flex:1;text-align:center;color:var(--ios-label)}
+.ios-nav-btn{background:none;border:none;color:var(--ios-blue);font-size:17px;cursor:pointer;
+  padding:6px;font-family:inherit;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.ios-nav-btn-icon{font-size:22px}
+.ios-large-title{padding:0 20px 12px;font-size:34px;font-weight:700;letter-spacing:-.5px;color:var(--ios-label)}
+.ios-search{margin:0 16px 12px;background:var(--ios-fill);border-radius:10px;
+  display:flex;align-items:center;gap:6px;padding:8px 12px}
+.ios-search-icon{font-size:16px;color:var(--ios-gray)}
+.ios-search input{background:none;border:none;outline:none;font-size:15px;color:var(--ios-label);
+  flex:1;font-family:inherit}
+.ios-search input::placeholder{color:var(--ios-gray2)}
 
-/* Hamburger slide-in panel */
-.ham-menu{position:fixed;inset:0;z-index:500;display:none;pointer-events:none}
-.ham-menu.open{display:block;pointer-events:all}
-.ham-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px)}
-.ham-panel{position:absolute;left:0;top:0;bottom:0;width:280px;background:var(--nav);
-  display:flex;flex-direction:column;padding-top:var(--safe-top);
-  transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
-  box-shadow:4px 0 30px rgba(0,0,0,.4)}
-.ham-menu.open .ham-panel{transform:translateX(0)}
-.ham-header{padding:16px 20px 14px;border-bottom:1px solid rgba(255,255,255,.1);
-  display:flex;align-items:center;justify-content:space-between}
-.ham-brand{display:flex;align-items:center;gap:10px}
-.ham-logo{width:38px;height:38px;background:linear-gradient(135deg,#3b82f6,#60a5fa);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.ham-title{font-size:14px;font-weight:700;color:#fff}
-.ham-family-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
-.ham-close{background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;
-  border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
-.ham-items{flex:1;overflow-y:auto;padding:8px 0}
-.ham-item{display:flex;align-items:center;gap:14px;padding:13px 20px;cursor:pointer;
-  color:rgba(255,255,255,.6);font-size:14px;font-weight:500;transition:all .15s;
-  border:none;background:none;width:100%;text-align:left}
-.ham-item:active{background:rgba(255,255,255,.1);color:#fff}
-.ham-item.active{color:#60a5fa;background:rgba(96,165,250,.12)}
-.ham-item-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0}
-.ham-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 20px}
-.ham-mon{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1)}
-.ham-mon-label{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;
-  letter-spacing:.6px;margin-bottom:8px;font-weight:600}
-.ham-mon-row{display:flex;align-items:center;gap:8px}
-.ham-mon-btn{background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;
-  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
-.ham-mon-lbl{flex:1;text-align:center;font-size:13px;font-weight:600;color:#fff;cursor:pointer}
+/* Month pill in nav */
+.mon-pill{display:flex;align-items:center;gap:6px;background:var(--ios-fill);
+  border-radius:20px;padding:5px 12px 5px 6px;cursor:pointer;border:none;font-family:inherit}
+.mon-pill-lbl{font-size:15px;font-weight:600;color:var(--ios-label)}
+.mon-arrow{background:var(--ios-blue);color:#fff;border:none;width:28px;height:28px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px}
+.today-pill{background:var(--ios-blue);color:#fff;border:none;border-radius:20px;
+  padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  display:none;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 
-/* sync pill */
-.sync-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;
-  font-size:11px;font-weight:500;transition:all .3s}
-.sync-pill.saving{background:var(--bbg);color:var(--blue)}
-.sync-pill.saved{background:var(--gbg);color:var(--green)}
-.sync-pill.error{background:var(--rbg);color:var(--red)}
-.sync-pill i{font-size:12px}
-@keyframes spin2{to{transform:rotate(360deg)}}
-.spinning{animation:spin2 .8s linear infinite;display:inline-block}
+/* ══ SCROLL CONTENT ══ */
+.ios-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;background:var(--ios-bg)}
+.ios-content{max-width:740px;margin:0 auto;padding-bottom:calc(var(--tab-h) + 8px)}
 
-/* ─── MAIN ─── */
-.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-.main-inner{padding:16px;max-width:1100px;margin:0 auto;padding-bottom:32px}
+/* ══ iOS GROUPED SECTIONS ══ */
+.ios-section{margin:20px 0 0}
+.ios-section-header{font-size:13px;font-weight:400;color:var(--ios-label2);
+  letter-spacing:.3px;text-transform:uppercase;padding:0 20px;margin-bottom:6px}
+.ios-section-footer{font-size:13px;color:var(--ios-label2);padding:6px 20px 0;line-height:1.4}
+.ios-list{background:var(--ios-card);border-radius:12px;margin:0 16px;overflow:hidden}
+.ios-row{display:flex;align-items:center;gap:12px;padding:11px 16px;
+  border-bottom:1px solid var(--ios-sep);min-height:44px;position:relative}
+.ios-row:last-child{border-bottom:none}
+.ios-row-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-size:16px;flex-shrink:0}
+.ios-row-label{flex:1;font-size:17px;color:var(--ios-label);min-width:0}
+.ios-row-value{font-size:17px;color:var(--ios-label2);flex-shrink:0}
+.ios-row-chevron{color:var(--ios-gray2);font-size:14px;flex-shrink:0}
+.ios-row-sub{font-size:13px;color:var(--ios-label2);margin-top:1px}
+.ios-row-tappable{cursor:pointer;transition:background .1s}
+.ios-row-tappable:active{background:var(--ios-fill2)}
+
+/* ══ METRIC CARDS ══ */
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;margin-top:12px}
+.metric-card{background:var(--ios-card);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.metric-card-label{font-size:13px;font-weight:500;color:var(--ios-label2);margin-bottom:4px}
+.metric-card-value{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.1}
+.metric-card-sub{font-size:12px;color:var(--ios-label3);margin-top:4px}
+.metric-card-icon{position:absolute;top:14px;right:14px;width:32px;height:32px;
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.mc-blue{color:#007aff}.mc-green{color:#34c759}.mc-red{color:#ff3b30}.mc-orange{color:#ff9500}
+.mc-blue-bg{background:rgba(0,122,255,.12)}.mc-green-bg{background:rgba(52,199,89,.12)}
+.mc-red-bg{background:rgba(255,59,48,.12)}.mc-orange-bg{background:rgba(255,149,0,.12)}
+
+/* ══ TRANSACTION ROWS ══ */
+.txn-row{display:flex;align-items:center;gap:12px;padding:11px 16px;
+  border-bottom:1px solid var(--ios-sep);background:var(--ios-card)}
+.txn-row:last-child{border-bottom:none}
+.txn-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:20px;flex-shrink:0}
+.txn-body{flex:1;min-width:0}
+.txn-title{font-size:16px;font-weight:500;color:var(--ios-label);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.txn-sub{font-size:13px;color:var(--ios-label2);margin-top:1px}
+.txn-amount{font-size:17px;font-weight:600;flex-shrink:0}
+.txn-actions{display:flex;gap:0}
+.txn-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  border:none;cursor:pointer;font-size:18px;background:none;transition:opacity .15s}
+.txn-btn:active{opacity:.6}
+
+/* Swipe-style action buttons */
+.txn-edit-btn{color:var(--ios-blue)}
+.txn-del-btn{color:var(--ios-red)}
+
+/* ══ CHARTS ══ */
+.chart-card{background:var(--ios-card);border-radius:16px;margin:12px 16px 0;padding:16px}
+.chart-title{font-size:15px;font-weight:600;color:var(--ios-label);margin-bottom:12px}
+.chart-wrap{position:relative}
+
+/* ══ PROGRESS BARS ══ */
+.prog-row{margin-bottom:10px}
+.prog-row-header{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.prog-emoji{font-size:16px}
+.prog-label{font-size:14px;font-weight:500;color:var(--ios-label);flex:1}
+.prog-value{font-size:13px;color:var(--ios-label2)}
+.prog-track{background:var(--ios-fill);border-radius:4px;height:5px;overflow:hidden}
+.prog-fill{height:5px;border-radius:4px;transition:width .5s}
+
+/* ══ FORM ELEMENTS ══ */
+.ios-form{background:var(--ios-card);border-radius:12px;margin:0 16px;overflow:hidden}
+.ios-form-field{display:flex;align-items:center;gap:12px;padding:11px 16px;
+  border-bottom:1px solid var(--ios-sep);min-height:44px}
+.ios-form-field:last-child{border-bottom:none}
+.ios-form-label{font-size:17px;color:var(--ios-label);white-space:nowrap;min-width:90px}
+.ios-form-input{flex:1;background:none;border:none;outline:none;font-size:17px;
+  color:var(--ios-label);text-align:right;font-family:inherit;-webkit-appearance:none;min-width:0}
+.ios-form-input::placeholder{color:var(--ios-label3)}
+.ios-form-select{flex:1;background:none;border:none;outline:none;font-size:17px;
+  color:var(--ios-blue);text-align:right;font-family:inherit;-webkit-appearance:none;
+  background-image:none;cursor:pointer;min-width:0}
+
+/* ══ BOTTOM SHEET ══ */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.sheet{background:var(--ios-card);border-radius:20px 20px 0 0;width:100%;max-width:640px;
+  box-shadow:0 -4px 40px rgba(0,0,0,.2);padding-bottom:var(--safe-bottom);
+  max-height:94vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-handle{width:36px;height:5px;background:var(--ios-gray2);border-radius:3px;
+  margin:10px auto 0;opacity:.5}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 8px}
+.sheet-title{font-size:17px;font-weight:600;color:var(--ios-label)}
+.sheet-close{background:var(--ios-fill);border:none;color:var(--ios-label2);
+  width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;font-family:inherit}
+.sheet-btn{margin:12px 16px;padding:15px;border-radius:14px;border:none;
+  font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;width:calc(100% - 32px);
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+.sheet-btn:active{opacity:.8}
+.sheet-btn-blue{background:var(--ios-blue);color:#fff}
+.sheet-btn-green{background:var(--ios-green);color:#fff}
+.sheet-btn-red{background:var(--ios-red);color:#fff}
+.sheet-btn-gray{background:var(--ios-fill);color:var(--ios-label)}
+
+/* ══ MONTH PICKER ══ */
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 16px 16px}
+.month-cell{padding:10px 4px;text-align:center;border-radius:10px;cursor:pointer;
+  font-size:15px;font-weight:500;color:var(--ios-label);transition:all .15s;border:none;background:none}
+.month-cell:active{background:var(--ios-fill)}
+.month-cell.sel{background:var(--ios-blue);color:#fff;font-weight:700}
+.month-cell.has{background:var(--ios-fill2)}
+.year-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px}
+.year-nav-btn{background:var(--ios-fill);border:none;color:var(--ios-label);width:32px;height:32px;
+  border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+.year-label{font-size:20px;font-weight:700;color:var(--ios-label)}
+
+/* ══ TAB BAR ══ */
+.ios-tab-bar{background:rgba(242,242,247,.92);border-top:1px solid var(--ios-sep);
+  padding-bottom:var(--safe-bottom);flex-shrink:0;display:flex;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;bottom:0;z-index:40}
+@media(prefers-color-scheme:dark){.ios-tab-bar{background:rgba(28,28,30,.92)}}
+.ios-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:10px 4px 4px;cursor:pointer;border:none;background:none;transition:opacity .1s}
+.ios-tab:active{opacity:.7}
+.ios-tab-icon{font-size:24px;line-height:1}
+.ios-tab-label{font-size:10px;font-weight:500;color:var(--ios-gray);letter-spacing:.1px}
+.ios-tab.active .ios-tab-icon{filter:none}
+.ios-tab.active .ios-tab-label{color:var(--ios-blue);font-weight:600}
+
+/* Desktop: top nav tabs instead of bottom */
+@media(min-width:768px){
+  .ios-tab-bar{display:none}
+  .desk-nav{display:flex!important}
+  .ios-large-title{padding-left:24px;padding-right:24px}
+  .ios-list,.ios-form,.metric-grid,.chart-card{margin-left:24px;margin-right:24px}
+  .metric-grid{grid-template-columns:repeat(4,1fr)}
+}
+.desk-nav{display:none;background:rgba(242,242,247,.95);border-bottom:1px solid var(--ios-sep);
+  padding:0 24px;gap:4px;backdrop-filter:blur(20px)}
+@media(prefers-color-scheme:dark){.desk-nav{background:rgba(28,28,30,.95)}}
+.desk-tab{padding:10px 14px;border-radius:8px;border:none;background:none;
+  font-size:13px;font-weight:500;color:var(--ios-label2);cursor:pointer;
+  display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;font-family:inherit}
+.desk-tab:hover{background:var(--ios-fill);color:var(--ios-label)}
+.desk-tab.active{background:var(--ios-fill);color:var(--ios-blue);font-weight:600}
+
+/* ══ INDICATOR ══ */
+.ios-notice{display:flex;align-items:center;gap:10px;margin:12px 16px 0;
+  background:var(--ios-card);border-radius:12px;padding:12px 14px;font-size:14px}
+.ios-notice-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ios-notice-blue{border-left:3px solid var(--ios-blue)}
+.ios-notice-blue .ios-notice-dot{background:var(--ios-blue)}
+.ios-notice-green{border-left:3px solid var(--ios-green)}
+.ios-notice-green .ios-notice-dot{background:var(--ios-green)}
+.ios-notice-orange{border-left:3px solid var(--ios-orange)}
+.ios-notice-orange .ios-notice-dot{background:var(--ios-orange)}
+
+/* ══ RECURRING CARDS ══ */
+.rec-card{background:var(--ios-card);border-radius:16px;margin:8px 16px 0;padding:16px;
+  display:flex;align-items:flex-start;gap:12px}
+.rec-card-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0}
+.rec-card-body{flex:1;min-width:0}
+.rec-card-name{font-size:16px;font-weight:600;color:var(--ios-label)}
+.rec-card-amount{font-size:22px;font-weight:700;letter-spacing:-.5px;margin:2px 0}
+.rec-card-meta{font-size:13px;color:var(--ios-label2)}
+.rec-card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.rec-pill{padding:6px 12px;border-radius:20px;font-size:13px;font-weight:600;
+  border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.rec-pill-blue{background:rgba(0,122,255,.12);color:var(--ios-blue)}
+.rec-pill-green{background:rgba(52,199,89,.12);color:var(--ios-green)}
+.rec-pill-red{background:rgba(255,59,48,.12);color:var(--ios-red)}
+.rec-pill-gray{background:var(--ios-fill);color:var(--ios-label2)}
+.rec-pill-orange{background:rgba(255,149,0,.12);color:var(--ios-orange)}
+.rec-toggle{position:absolute;top:14px;right:14px}
+.ios-switch{position:relative;width:51px;height:31px;cursor:pointer;flex-shrink:0}
+.ios-switch input{opacity:0;width:0;height:0;position:absolute}
+.ios-switch-track{position:absolute;inset:0;background:var(--ios-gray2);border-radius:31px;transition:background .2s}
+.ios-switch-thumb{position:absolute;top:2px;left:2px;width:27px;height:27px;background:#fff;
+  border-radius:50%;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.ios-switch input:checked~.ios-switch-track{background:var(--ios-green)}
+.ios-switch input:checked~.ios-switch-thumb{transform:translateX(20px)}
+.due-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+  border-radius:20px;font-size:12px;font-weight:600}
+.due-ok{background:rgba(52,199,89,.12);color:var(--ios-green)}
+.due-warn{background:rgba(255,149,0,.12);color:var(--ios-orange)}
+.due-late{background:rgba(255,59,48,.12);color:var(--ios-red)}
+.due-done{background:var(--ios-fill);color:var(--ios-gray)}
+.due-skip{background:var(--ios-fill);color:var(--ios-gray);text-decoration:line-through}
+
+/* ══ SETTINGS ══ */
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px}
+.emoji-btn{width:38px;height:38px;border-radius:9px;border:2px solid transparent;
+  background:var(--ios-fill);cursor:pointer;font-size:20px;display:flex;
+  align-items:center;justify-content:center;transition:all .15s}
+.emoji-btn.sel{border-color:var(--ios-blue);background:rgba(0,122,255,.12)}
+
+/* ══ PERSON SPLIT ══ */
+.person-row{display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border-bottom:1px solid var(--ios-sep)}
+.person-row:last-child{border-bottom:none}
+.person-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.person-name{flex:1;font-size:16px;font-weight:500;color:var(--ios-label)}
+.person-amount{font-size:17px;font-weight:700}
+
+/* ══ SYNC DOT ══ */
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.sync-saving{background:var(--ios-blue);animation:pulse 1s infinite}
+.sync-saved{background:var(--ios-green)}
+.sync-err{background:var(--ios-red)}
+
+/* ══ EMPTY ══ */
+.ios-empty{text-align:center;padding:48px 32px;color:var(--ios-label2)}
+.ios-empty-icon{font-size:48px;display:block;margin-bottom:12px;opacity:.4}
+.ios-empty-title{font-size:20px;font-weight:600;color:var(--ios-label);margin-bottom:6px}
+.ios-empty-sub{font-size:15px;line-height:1.5}
+
+/* ══ PAGE ══ */
 .page{display:none}.page.active{display:block}
 
-/* ─── MOBILE ─── */
-@media(max-width:640px){
-  .ntabs{display:none}
-  .monnav{display:none}
-  .hamburger-btn{display:flex}
-  .main-inner{padding:12px;padding-bottom:16px}
-}
+/* ══ TOAST ══ */
+.ios-toast{position:fixed;bottom:calc(var(--tab-h) + 20px);left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(50,50,50,.9);color:#fff;padding:10px 20px;border-radius:20px;
+  font-size:14px;font-weight:500;z-index:999;opacity:0;transition:all .25s;
+  white-space:nowrap;backdrop-filter:blur(10px);pointer-events:none}
+.ios-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* mobile month bar */
-.mob-month-bar{display:none;background:var(--nav);padding:6px 16px;padding-top:0;
-  justify-content:space-between;align-items:center;flex-shrink:0}
-@media(max-width:640px){.mob-month-bar{display:flex}}
-.mob-mnbtn{background:rgba(255,255,255,.12);border:none;color:#fff;width:30px;height:30px;
-  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
-.mob-mnlbl{font-size:14px;font-weight:600;color:#fff;cursor:pointer}
+/* ══ USER PANEL ══ */
+.user-avatar-btn{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.member-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--ios-sep)}
+.member-row:last-child{border-bottom:none}
+.invite-code-big{font-size:32px;font-weight:800;letter-spacing:8px;color:var(--ios-blue);
+  font-family:'SF Mono',monospace;text-align:center;padding:16px 0}
 
-/* ─── UI COMPONENTS ─── */
-.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
-@media(max-width:400px){.sgrid{grid-template-columns:1fr 1fr}}
-.metric{background:var(--card);border-radius:var(--rs);border:1px solid var(--border);padding:13px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-.mlbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;align-items:center;gap:4px}
-.mval{font-size:21px;font-weight:700;letter-spacing:-1px;line-height:1.1}
-.msub{font-size:11px;color:var(--muted);margin-top:3px}
-.cg{color:var(--green)}.cr{color:var(--red)}.cb{color:var(--blue)}.ca{color:var(--amber)}
-.charts2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-@media(max-width:600px){.charts2{grid-template-columns:1fr}}
-.secrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
-.tbl td{padding:9px 10px;border-bottom:1px solid var(--border)}
-.tbl tr:last-child td{border-bottom:none}
-.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--border)}
-.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:20px;font-size:11px;font-weight:500}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
-.fg{display:flex;flex-direction:column;gap:4px}
-.flbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.2px}
-.fi{border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:15px;
-  background:var(--card);color:var(--text);transition:border-color .15s;width:100%;-webkit-appearance:none}
-.fi:focus{outline:none;border-color:var(--blue)}
-.fi-sel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;appearance:none}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 15px;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap;-webkit-appearance:none}
-.btn:active{filter:brightness(.88)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-p{background:#2563eb;color:#fff}
-.btn-s{background:var(--green);color:#fff}
-.btn-d{background:var(--red);color:#fff}
-.btn-g{background:transparent;color:var(--text);border-color:var(--border)}
-.btn-sm{padding:5px 10px;font-size:11px}
-.btn-warn{background:var(--amber);color:#fff}
-.ind{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--rs);font-size:12px;margin-bottom:14px}
-.pulse{width:7px;height:7px;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.pw{background:var(--bg);border-radius:20px;height:6px;overflow:hidden;margin-top:3px}
-.pb{height:6px;border-radius:20px;transition:width .5s}
-.ovrow{display:grid;grid-template-columns:44px 1fr 78px 78px 78px;gap:6px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--border);font-size:12px}
-@media(max-width:480px){.ovrow{grid-template-columns:36px 1fr 68px 68px}.ov-inc{display:none}}
-.ovrow:last-child{border-bottom:none}
-.bwrap{position:relative;height:18px;background:var(--bg);border-radius:4px;overflow:hidden}
-.bbar{position:absolute;height:50%;border-radius:4px}
-.empty{text-align:center;padding:32px 16px;color:var(--muted)}
-.empty i{font-size:32px;display:block;margin-bottom:8px;opacity:.3}
-.toast{position:fixed;bottom:calc(80px + var(--safe-bottom));right:16px;left:16px;
-  background:#16213e;color:#e5e7eb;padding:10px 16px;border-radius:var(--rs);font-size:13px;
-  z-index:9999;opacity:0;transform:translateY(10px);transition:all .28s;pointer-events:none;
-  box-shadow:0 8px 24px rgba(0,0,0,.25);text-align:center}
-.toast.show{opacity:1;transform:translateY(0)}
-@media(min-width:641px){.toast{left:auto;max-width:340px;bottom:22px}}
-.ytabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-.ytab{padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);font-weight:500}
-.ytab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+/* ══ HELP ══ */
+.help-row{display:flex;gap:14px;padding:14px 16px;border-bottom:1px solid var(--ios-sep);background:var(--ios-card)}
+.help-row:last-child{border-bottom:none}
+.help-icon{font-size:28px;flex-shrink:0;margin-top:2px}
+.help-title{font-size:15px;font-weight:600;color:var(--ios-label);margin-bottom:3px}
+.help-text{font-size:14px;color:var(--ios-label2);line-height:1.5}
 
-/* ─── OVERLAY ─── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
-@media(min-width:641px){.overlay{align-items:center}}
-.picker{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-width:360px;box-shadow:0 -8px 40px rgba(0,0,0,.2);padding-bottom:calc(20px + var(--safe-bottom))}
-@media(min-width:641px){.picker{border-radius:var(--r);padding-bottom:20px}}
-.picker-year{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.ynbtn{background:none;border:none;cursor:pointer;color:var(--text);padding:6px 10px;border-radius:var(--rs)}
-.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
-.mcell{padding:10px 2px;text-align:center;border-radius:var(--rs);cursor:pointer;font-size:12px;border:1px solid transparent;font-weight:500}
-.mcell:active{background:var(--bbg);color:var(--blue)}
-.mcell.sel{background:var(--blue);color:#fff}
-.mcell.has{border-color:var(--border);background:var(--bg)}
-.picker-legend{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:12px}
-.swatch{display:inline-block;width:10px;height:10px;border-radius:3px}
-.modal-lg{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;box-shadow:0 -8px 40px rgba(0,0,0,.2);max-height:92vh;overflow-y:auto;padding-bottom:calc(20px + var(--safe-bottom))}
-@media(min-width:641px){.modal-lg{border-radius:var(--r);width:480px;max-width:95vw;padding-bottom:20px}}
-.drag-handle{width:32px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
-
-/* ─── RECURRING ─── */
-.rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
-.rec-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative}
-.rec-card.inactive{opacity:.55}
-.rec-icon{width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.rec-body{flex:1;min-width:0}
-.rec-name{font-size:13px;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rec-meta{font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
-.rec-amount{font-size:16px;font-weight:700;letter-spacing:-.5px}
-.rec-actions{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
-.due-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
-.due-ok{background:var(--gbg);color:var(--green)}
-.due-soon{background:var(--abg);color:var(--amber)}
-.due-today{background:var(--rbg);color:var(--red)}
-.due-done{background:#f1f5f9;color:var(--muted)}
-.due-skip{background:#f1f5f9;color:var(--muted);text-decoration:line-through}
-.due-future{background:#f1f5f9;color:var(--muted)}
-.rec-toggle{position:absolute;top:11px;right:11px}
-.sw{position:relative;width:36px;height:20px;cursor:pointer}
-.sw input{opacity:0;width:0;height:0;position:absolute}
-.sl{position:absolute;inset:0;background:var(--border);border-radius:10px;transition:background .2s}
-.sl::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.sw input:checked+.sl{background:var(--green)}
-.sw input:checked+.sl::after{transform:translateX(16px)}
-.rec-summary{background:linear-gradient(135deg,var(--bbg),#eff6ff);border:1px solid #bfdbfe;border-radius:var(--rs);padding:13px 15px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
-.rec-sum-item{display:flex;flex-direction:column;gap:2px}
-.rec-sum-val{font-size:17px;font-weight:700;letter-spacing:-.5px}
-.rec-sum-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.interval-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:10px;background:#f1f5f9;color:var(--muted);font-weight:500}
-
-/* ─── FORM SECTION ─── */
-.form-section{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;display:none}
-.form-section.open{display:block}
-
-/* ─── FAMILY PANEL ─── */
-.member-chip{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg);margin-bottom:6px}
-.member-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+/* ══ MISC ══ */
+.ios-sep-line{height:1px;background:var(--ios-sep);margin:0 16px}
+.ios-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600}
+.ios-badge-blue{background:rgba(0,122,255,.12);color:var(--ios-blue)}
+.ios-badge-green{background:rgba(52,199,89,.12);color:var(--ios-green)}
+.ios-badge-gray{background:var(--ios-fill);color:var(--ios-gray)}
+canvas{display:block}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 </style>
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo">
-    <svg width="46" height="46" viewBox="0 0 46 46" fill="none">
-      <path d="M23 6L4 20h4v20h10V28h10v12h10V20h4L23 6z" fill="white" opacity=".95"/>
-      <circle cx="32" cy="14" r="5" fill="#60a5fa"/>
-      <circle cx="37" cy="18" r="3.5" fill="#93c5fd"/>
-      <path d="M27 14c0-2.76 2.24-5 5-5" stroke="#fff" stroke-width="1.5" opacity=".4"/>
+  <div class="splash-icon">
+    <svg width="60" height="60" viewBox="0 0 200 200">
+      <polygon points="100,30 28,90 172,90" fill="#3b82f6"/>
+      <rect x="46" y="90" width="108" height="74" fill="#2563eb"/>
+      <rect x="76" y="112" width="48" height="52" fill="#1d3f8e"/>
+      <text x="100" y="185" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#93c5fd;font-family:-apple-system,system-ui">FamilyBudget</text>
     </svg>
   </div>
-  <div class="splash-title">FamilyBudget</div>
-  <div class="splash-sub">Wird geladen…</div>
-  <div class="splash-spinner"></div>
+  <div class="splash-name">FamilyBudget</div>
+  <div class="splash-sub">Familienfinanzen auf allen Geräten</div>
+  <div class="splash-spin"></div>
 </div>
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-logo">
-    <svg width="36" height="36" viewBox="0 0 46 46" fill="none">
-      <path d="M23 6L4 20h4v20h10V28h10v12h10V20h4L23 6z" fill="white" opacity=".95"/>
-      <circle cx="32" cy="14" r="5" fill="#60a5fa"/>
-      <circle cx="37" cy="18" r="3.5" fill="#93c5fd"/>
+  <div class="login-icon">
+    <svg width="48" height="48" viewBox="0 0 200 200">
+      <polygon points="100,30 28,90 172,90" fill="#3b82f6"/>
+      <rect x="46" y="90" width="108" height="74" fill="#2563eb"/>
+      <rect x="76" y="112" width="48" height="52" fill="#1d3f8e"/>
     </svg>
   </div>
   <div class="login-title">FamilyBudget</div>
   <div class="login-sub">Familienfinanzen einfach verwalten<br>auf allen deinen Geräten</div>
-  <div class="login-box">
-    <div class="login-tabs">
-      <button class="ltab active" id="ltab-login" onclick="switchTab('login')">Anmelden</button>
-      <button class="ltab" id="ltab-register" onclick="switchTab('register')">Registrieren</button>
+  <div class="login-segment">
+    <button class="lseg active" id="ltab-login" onclick="switchTab('login')">Anmelden</button>
+    <button class="lseg" id="ltab-register" onclick="switchTab('register')">Registrieren</button>
+  </div>
+  <!-- LOGIN -->
+  <div id="form-login" style="width:100%;max-width:340px">
+    <div class="login-card">
+      <div class="login-field">
+        <div class="lf-label">E-Mail</div>
+        <input class="lf-input" id="l-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="login-field">
+        <div class="lf-label">Passwort</div>
+        <input class="lf-input" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
     </div>
-    <!-- LOGIN FORM -->
-    <div id="form-login">
-      <div class="lg"><div class="ll">E-Mail</div>
-        <input class="li" id="l-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="lg"><div class="ll">Passwort</div>
-        <input class="li" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button type="button" class="btn-login" id="btn-login" onclick="doLogin()">Anmelden →</button>
-      <div id="login-err" class="login-err"></div>
-      <button type="button" onclick="switchTab('reset')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;margin-top:12px;width:100%;text-align:center">Passwort vergessen?</button>
+    <button type="button" class="login-btn" id="btn-login" onclick="doLogin()">Anmelden</button>
+    <div id="login-err" class="login-err"></div>
+    <button type="button" class="login-link" onclick="switchTab('reset')">Passwort vergessen?</button>
+  </div>
+  <!-- REGISTER -->
+  <div id="form-register" style="display:none;width:100%;max-width:340px">
+    <div class="login-card">
+      <div class="login-field">
+        <div class="lf-label">E-Mail</div>
+        <input class="lf-input" id="r-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" onkeydown="if(event.key==='Enter')doRegister()">
+      </div>
+      <div class="login-field">
+        <div class="lf-label">Passwort</div>
+        <input class="lf-input" id="r-pass" type="password" placeholder="Mindestens 6 Zeichen" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+      </div>
     </div>
-    <!-- REGISTER FORM -->
-    <div id="form-register" style="display:none">
-      <div class="lg"><div class="ll">E-Mail</div>
-        <input class="li" id="r-email" type="email" placeholder="name@beispiel.ch" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')doRegister()"></div>
-      <div class="lg"><div class="ll">Passwort</div>
-        <input class="li" id="r-pass" type="password" placeholder="Mindestens 6 Zeichen" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()"></div>
-      <button type="button" class="btn-login" id="btn-register" onclick="doRegister()">Konto erstellen →</button>
-      <div id="register-err" class="login-err"></div>
-      <div id="register-ok" class="login-ok"></div>
+    <button type="button" class="login-btn" id="btn-register" onclick="doRegister()">Konto erstellen</button>
+    <div id="register-err" class="login-err"></div>
+    <div id="register-ok" class="login-ok"></div>
+  </div>
+  <!-- RESET -->
+  <div id="form-reset" style="display:none;width:100%;max-width:340px">
+    <div style="font-size:14px;color:rgba(255,255,255,.45);margin-bottom:16px;text-align:center;line-height:1.5">Gib deine E-Mail ein — du erhältst einen Reset-Link.</div>
+    <div class="login-card">
+      <div class="login-field">
+        <div class="lf-label">E-Mail</div>
+        <input class="lf-input" id="reset-email" type="email" placeholder="name@beispiel.ch" onkeydown="if(event.key==='Enter')doReset()">
+      </div>
     </div>
-    <!-- RESET FORM -->
-    <div id="form-reset" style="display:none">
-      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:14px">Gib deine E-Mail ein — du erhältst einen Link zum Zurücksetzen des Passworts.</div>
-      <div class="lg"><div class="ll">E-Mail</div>
-        <input class="li" id="reset-email" type="email" placeholder="name@beispiel.ch" inputmode="email" onkeydown="if(event.key==='Enter')doReset()"></div>
-      <button type="button" class="btn-login" id="btn-reset" onclick="doReset()">Link senden →</button>
-      <div id="reset-err" class="login-err"></div>
-      <div id="reset-ok" class="login-ok"></div>
-      <button type="button" onclick="switchTab('login')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;margin-top:12px;width:100%;text-align:center">← Zurück zum Login</button>
-    </div>
+    <button type="button" class="login-btn" id="btn-reset" onclick="doReset()">Reset-Link senden</button>
+    <div id="reset-err" class="login-err"></div>
+    <div id="reset-ok" class="login-ok"></div>
+    <button type="button" class="login-link" onclick="switchTab('login')">← Zurück</button>
   </div>
 </div>
 
 <!-- FAMILY SETUP -->
 <div id="familyScreen">
-  <div style="text-align:center;margin-bottom:24px">
-    <div class="splash-logo" style="margin:0 auto 12px"><i class="ti ti-users"></i></div>
-    <div style="font-size:20px;font-weight:700;color:#fff">Familie einrichten</div>
-    <div style="font-size:13px;color:rgba(255,255,255,.45);margin-top:4px">Erstelle deine Familie oder tritt einer bei</div>
+  <div class="login-icon" style="margin-bottom:14px">
+    <svg width="48" height="48" viewBox="0 0 200 200">
+      <polygon points="100,30 28,90 172,90" fill="#3b82f6"/>
+      <rect x="46" y="90" width="108" height="74" fill="#2563eb"/>
+      <rect x="76" y="112" width="48" height="52" fill="#1d3f8e"/>
+    </svg>
   </div>
-  <div class="setup-box" id="familyOptions">
-    <div class="setup-title">Wie möchtest du starten?</div>
-    <div class="setup-sub">Du kannst später Familienmitglieder einladen.</div>
-    <div class="setup-option" onclick="showCreateFamily()">
-      <i class="ti ti-home-plus"></i>
-      <div class="setup-option-text">
-        <div class="setup-option-title">Neue Familie erstellen</div>
-        <div class="setup-option-desc">Starte ein neues Familien-Budget</div>
-      </div>
-      <i class="ti ti-chevron-right" style="color:rgba(255,255,255,.2)"></i>
-    </div>
-    <div class="setup-option" onclick="showJoinFamily()">
-      <i class="ti ti-door-enter"></i>
-      <div class="setup-option-text">
-        <div class="setup-option-title">Familie beitreten</div>
-        <div class="setup-option-desc">Mit einem Einladungscode</div>
-      </div>
-      <i class="ti ti-chevron-right" style="color:rgba(255,255,255,.2)"></i>
+  <div style="font-size:28px;font-weight:700;color:#fff;margin-bottom:6px">Familie einrichten</div>
+  <div style="font-size:15px;color:rgba(255,255,255,.4);margin-bottom:28px;text-align:center">Erstelle deine Familie oder tritt einer bei</div>
+
+  <div id="familyOptions" style="width:100%;max-width:380px">
+    <div class="setup-card">
+      <button class="setup-option" onclick="showCreateFamily()">
+        <div class="setup-opt-icon">🏠</div>
+        <div><div class="setup-opt-title">Neue Familie erstellen</div><div class="setup-opt-desc">Starte ein neues Familienbudget</div></div>
+        <div class="setup-chevron">›</div>
+      </button>
+      <button class="setup-option" onclick="showJoinFamily()">
+        <div class="setup-opt-icon">🔗</div>
+        <div><div class="setup-opt-title">Familie beitreten</div><div class="setup-opt-desc">Mit einem Einladungscode</div></div>
+        <div class="setup-chevron">›</div>
+      </button>
     </div>
   </div>
 
-  <div class="setup-box" id="createFamilyBox" style="display:none">
-    <div class="setup-title">Neue Familie erstellen</div>
-    <div class="setup-sub">Wähle einen Namen für eure Familie.</div>
-    <div class="lg"><div class="ll">Familienname</div>
-      <input class="li" id="family-name-input" type="text" placeholder="z.B. Familie Müller" autocapitalize="words"></div>
-    <button class="btn-login" id="btn-create-family" onclick="createFamily()" style="margin-top:8px">Familie erstellen →</button>
+  <div id="createFamilyBox" style="display:none;width:100%;max-width:380px">
+    <div class="setup-card">
+      <div class="setup-header"><div class="setup-title">Neue Familie</div><div class="setup-sub">Wähle einen Namen für eure Familie.</div></div>
+      <div class="login-field" style="border-bottom:none;padding:0 20px 20px">
+        <div class="lf-label">Familienname</div>
+        <input class="lf-input" id="family-name-input" type="text" placeholder="z.B. Familie Mäder" autocapitalize="words">
+      </div>
+    </div>
+    <button type="button" class="login-btn" id="btn-create-family" onclick="createFamily()">Familie erstellen</button>
     <div id="create-family-err" class="login-err"></div>
-    <button onclick="document.getElementById('familyOptions').style.display='block';document.getElementById('createFamilyBox').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center">← Zurück</button>
+    <button type="button" class="login-link" onclick="document.getElementById('familyOptions').style.display='block';document.getElementById('createFamilyBox').style.display='none'">← Zurück</button>
   </div>
 
-  <div class="setup-box" id="joinFamilyBox" style="display:none">
-    <div class="setup-title">Familie beitreten</div>
-    <div class="setup-sub">Gib den 6-stelligen Code ein, den du erhalten hast.</div>
-    <div class="lg"><div class="ll">Einladungscode</div>
-      <input class="li" id="invite-code-input" type="text" placeholder="ABC123" maxlength="6" autocapitalize="characters" style="text-align:center;font-size:24px;letter-spacing:6px;font-weight:700"></div>
-    <button class="btn-login" id="btn-join-family" onclick="joinFamily()" style="margin-top:8px">Beitreten →</button>
+  <div id="joinFamilyBox" style="display:none;width:100%;max-width:380px">
+    <div class="setup-card">
+      <div class="setup-header"><div class="setup-title">Beitreten</div><div class="setup-sub">Gib den 6-stelligen Einladungscode ein.</div></div>
+      <div class="login-field" style="border-bottom:none;padding:0 20px 20px">
+        <input class="lf-input" id="invite-code-input" type="text" placeholder="ABC123" maxlength="6"
+          style="text-align:center;font-size:32px;letter-spacing:10px;font-weight:800;color:#60a5fa" autocapitalize="characters">
+      </div>
+    </div>
+    <button type="button" class="login-btn" id="btn-join-family" onclick="joinFamily()">Beitreten</button>
     <div id="join-family-err" class="login-err"></div>
-    <button onclick="document.getElementById('familyOptions').style.display='block';document.getElementById('joinFamilyBox').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center">← Zurück</button>
+    <button type="button" class="login-link" onclick="document.getElementById('familyOptions').style.display='block';document.getElementById('joinFamilyBox').style.display='none'">← Zurück</button>
   </div>
 </div>
 
-<!-- MAIN APP -->
+<!-- ══════════════════ MAIN APP ══════════════════ -->
 <div id="app">
 
-  <!-- Hamburger Menu Panel (mobile) -->
-  <div class="ham-menu" id="hamMenu">
-    <div class="ham-backdrop" onclick="closeHam()"></div>
-    <div class="ham-panel">
-      <div class="ham-header">
-        <div class="ham-brand">
-          <div class="ham-logo">🏠</div>
-          <div><div class="ham-title">FamilyBudget</div><div class="ham-family-lbl" id="hamFamilyLbl"></div></div>
-        </div>
-        <button class="ham-close" onclick="closeHam()">✕</button>
-      </div>
-      <div class="ham-items">
-        <button class="ham-item active" id="hm-dash" onclick="hamGo('dash')"><span class="ham-item-icon">🏠</span>Dashboard</button>
-        <button class="ham-item" id="hm-income" onclick="hamGo('income')"><span class="ham-item-icon">📈</span>Einnahmen</button>
-        <button class="ham-item" id="hm-expenses" onclick="hamGo('expenses')"><span class="ham-item-icon">📉</span>Ausgaben</button>
-        <button class="ham-item" id="hm-overview" onclick="hamGo('overview')"><span class="ham-item-icon">📅</span>Jahresübersicht</button>
-        <button class="ham-item" id="hm-stats" onclick="hamGo('stats')"><span class="ham-item-icon">📊</span>Statistiken</button>
-        <div class="ham-divider"></div>
-        <button class="ham-item" id="hm-recurring" onclick="hamGo('recurring')"><span class="ham-item-icon">🔁</span>Daueraufträge</button>
-        <div class="ham-divider"></div>
-        <button class="ham-item" id="hm-settings" onclick="hamGo('settings')"><span class="ham-item-icon">⚙️</span>Einstellungen</button>
-        <button class="ham-item" id="hm-help" onclick="hamGo('help')"><span class="ham-item-icon">❓</span>Hilfe</button>
-      </div>
-      <div class="ham-mon">
-        <div class="ham-mon-label">Monat</div>
-        <div class="ham-mon-row">
-          <button class="ham-mon-btn" onclick="step(-1);updateHamMon()" style="background:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.4)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <div class="ham-mon-lbl" id="hamMonLbl" onclick="closeHam();openPicker()">Mai 2026</div>
-          <button class="ham-mon-btn" onclick="step(1);updateHamMon()" style="background:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.4)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <button id="todayBtnHam" onclick="goToday();closeHam()" style="display:none;background:rgba(96,165,250,.2);border:none;color:#60a5fa;font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;margin-left:4px;white-space:nowrap">Heute</button>
-        </div>
-      </div>
+  <!-- Desktop nav tabs -->
+  <div class="desk-nav" id="deskNav">
+    <button class="desk-tab active" id="dt-dash" onclick="go('dash')">🏠 Übersicht</button>
+    <button class="desk-tab" id="dt-income" onclick="go('income')">📈 Einnahmen</button>
+    <button class="desk-tab" id="dt-expenses" onclick="go('expenses')">📉 Ausgaben</button>
+    <button class="desk-tab" id="dt-overview" onclick="go('overview')">📅 Jahresübersicht</button>
+    <button class="desk-tab" id="dt-recurring" onclick="go('recurring')">🔁 Daueraufträge</button>
+    <button class="desk-tab" id="dt-settings" onclick="go('settings')">⚙️ Einstellungen</button>
+    <button class="desk-tab" id="dt-help" onclick="go('help')">❓ Hilfe</button>
+    <div style="flex:1"></div>
+    <!-- Month control desktop -->
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 0">
+      <button class="mon-arrow" onclick="step(-1)" style="font-size:16px">‹</button>
+      <button class="mon-pill" id="mnlbl" onclick="openPicker()" style="padding:4px 10px">
+        <span class="mon-pill-lbl" id="mnlbl-txt">Mai 2026</span>
+      </button>
+      <button class="mon-arrow" onclick="step(1)" style="font-size:16px">›</button>
+      <button class="today-pill" id="todayBtnDesktop" onclick="goToday()">Heute</button>
     </div>
+    <button class="user-avatar-btn" id="userBtn" onclick="openUserMenu()" style="margin-left:8px;margin-right:4px">?</button>
+    <span id="syncDot" class="sync-dot sync-saved" style="margin-right:8px;display:none"></span>
   </div>
 
-  <nav class="nav">
-    <button class="hamburger-btn" onclick="openHam()">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="brand">
-      <i class="ti ti-home-dollar"></i>
-      <div><div>FamilyBudget</div><div class="brand-family" id="brandFamily"></div></div>
-    </div>
-    <div class="ntabs">
-      <button class="ntab active" onclick="go('dash')"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
-      <button class="ntab" onclick="go('income')"><i class="ti ti-trending-up"></i>Einnahmen</button>
-      <button class="ntab" onclick="go('expenses')"><i class="ti ti-trending-down"></i>Ausgaben</button>
-      <button class="ntab" onclick="go('overview')"><i class="ti ti-calendar-stats"></i>Jahresübersicht</button>
-      <button class="ntab" onclick="go('stats')"><i class="ti ti-chart-pie"></i>Statistiken</button>
-      <button class="ntab" onclick="go('recurring')"><i class="ti ti-repeat"></i>Daueraufträge</button>
-      <button class="ntab" onclick="go('settings')">⚙️ Einstellungen</button>
-      <button class="ntab" onclick="go('help')">❓ Hilfe</button>
-    </div>
-    <div class="nright">
-      <div class="monnav">
-        <button class="mnbtn" onclick="step(-1)"><i class="ti ti-chevron-left"></i></button>
-        <div class="mnlabel" id="mnlbl" onclick="openPicker()">Mai 2026</div>
-        <button class="mnbtn" onclick="step(1)"><i class="ti ti-chevron-right"></i></button>
-        <button class="mnbtn today-btn" id="todayBtnDesktop" onclick="goToday()" title="Heute" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);display:none;width:auto;padding:0 6px;border-radius:6px;background:rgba(96,165,250,.2)">Heute</button>
-      </div>
-      <span id="syncPill" class="sync-pill saved" style="display:none"><i class="ti ti-cloud-check"></i></span>
-      <button class="user-btn" id="userBtn" onclick="openUserMenu()">?</button>
-    </div>
-  </nav>
-  <div class="mob-month-bar" id="mobMonthBar">
-    <button onclick="step(-1)" style="background:#2563eb;border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.4);flex-shrink:0">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:center">
-      <div class="mob-mnlbl" id="mnlbl2" onclick="openPicker()">Mai 2026</div>
-      <button id="todayBtnMobile" onclick="goToday()" style="display:none;background:rgba(96,165,250,.25);border:none;color:#60a5fa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;white-space:nowrap">Heute</button>
-    </div>
-    <button onclick="step(1)" style="background:#2563eb;border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.4);flex-shrink:0">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-  </div>
+  <!-- Scroll area -->
+  <div class="ios-scroll" id="mainScroll">
+    <div class="ios-content">
 
-  <div class="main" id="mainScroll">
-    <div class="main-inner">
-
-      <!-- DASHBOARD -->
+      <!-- ── DASHBOARD ── -->
       <div class="page active" id="pg-dash">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-          <div><h1 style="font-size:20px;font-weight:700" id="dtitle"></h1>
-            <p style="font-size:12px;color:var(--muted);margin-top:2px" id="dsubtitle"></p></div>
-          <div id="dstatus"></div>
-        </div>
-        <div class="ind" id="dind"><span class="pulse" id="dpulse"></span><span id="dindtxt"></span></div>
-        <div id="rec-auto-notice" style="display:none;background:var(--abg);border:1px solid #fcd34d;border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:12px;align-items:center;gap:8px"></div>
-        <div id="rec-inc-notice" style="display:none;background:var(--gbg);border:1px solid #a7f3d0;border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--green);margin-bottom:12px;align-items:center;gap:8px"></div>
-        <div class="sgrid" id="scards"></div>
-        <!-- Budget-Aufteilung nach Personen -->
-        <div class="card" id="personSplitCard" style="margin-bottom:14px;display:none">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-            <span>👥 Budget-Aufteilung</span>
-            <button onclick="go('settings')" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer">Personen bearbeiten →</button>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <button class="ios-nav-btn" onclick="openUserMenu()">
+              <span id="userAvatarNav" class="user-avatar-btn" style="width:28px;height:28px;font-size:11px">?</span>
+            </button>
+            <div class="ios-nav-title" id="brandFamily">FamilyBudget</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button class="today-pill" id="todayBtnMobile" onclick="goToday()">Heute</button>
+              <button class="mon-arrow" onclick="step(-1)" style="width:24px;height:24px;font-size:14px">‹</button>
+              <span style="font-size:13px;font-weight:600;color:var(--ios-label)" id="mnlbl2">Mai 2026</span>
+              <button class="mon-arrow" onclick="step(1)" style="width:24px;height:24px;font-size:14px">›</button>
+              <button style="background:none;border:none;font-size:20px;cursor:pointer;padding:2px" onclick="openPicker()">📅</button>
+            </div>
           </div>
-          <div id="personSplitList"></div>
         </div>
-        <div class="charts2">
-          <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">Ausgaben nach Kategorie</div>
-            <div style="position:relative;height:170px"><canvas id="pieC"></canvas></div>
-            <div id="pieLeg" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:11px"></div></div>
-          <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">Einnahmen vs. Ausgaben</div>
-            <div style="position:relative;height:170px"><canvas id="barC"></canvas></div></div>
+        <div class="ios-large-title" id="dtitle">Mai 2026</div>
+        <div id="dind-wrap"></div>
+        <div id="rec-auto-notice" style="display:none"></div>
+        <div id="rec-inc-notice" style="display:none"></div>
+        <div class="metric-grid" id="scards"></div>
+        <div id="personSplitCard" style="display:none">
+          <div style="margin:16px 16px 0;font-size:13px;font-weight:600;color:var(--ios-label2);text-transform:uppercase;letter-spacing:.5px">👥 Budget pro Person</div>
+          <div class="ios-list" style="margin-top:6px"><div id="personSplitList"></div></div>
         </div>
-        <div class="charts2">
-          <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">Sparquote</div>
-            <div style="display:flex;align-items:center;gap:14px">
-              <svg viewBox="0 0 100 100" width="76" height="76" style="flex-shrink:0">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--bg)" stroke-width="10"/>
-                <circle id="sarc" cx="50" cy="50" r="40" fill="none" stroke="var(--green)" stroke-width="10" stroke-dasharray="0 251.2" stroke-linecap="round" transform="rotate(-90 50 50)"/>
-                <text id="spct" x="50" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="var(--text)">0%</text>
+        <div class="chart-card" style="margin-top:16px">
+          <div class="chart-title">Ausgaben nach Kategorie</div>
+          <div class="chart-wrap" style="height:200px"><canvas id="pieC"></canvas></div>
+          <div id="pieLeg" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:13px"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Einnahmen vs. Ausgaben</div>
+          <div class="chart-wrap" style="height:160px"><canvas id="barC"></canvas></div>
+        </div>
+        <div class="ios-section">
+          <div class="ios-section-header">Sparquote</div>
+          <div class="ios-list" style="padding:16px">
+            <div style="display:flex;align-items:center;gap:20px">
+              <svg viewBox="0 0 100 100" width="80" height="80" style="flex-shrink:0">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--ios-fill)" stroke-width="10"/>
+                <circle id="sarc" cx="50" cy="50" r="40" fill="none" stroke="#34c759" stroke-width="10"
+                  stroke-dasharray="0 251.2" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                <text id="spct" x="50" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ios-label)">0%</text>
               </svg>
-              <div><div id="sdet" style="font-size:12px;color:var(--muted)"></div></div>
-            </div></div>
-          <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">Top Kategorien</div>
-            <div id="catprog"></div></div>
+              <div id="sdet" style="font-size:14px;color:var(--ios-label2);line-height:1.6"></div>
+            </div>
+          </div>
         </div>
-        <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">Letzte Ausgaben</div><div id="recent"></div></div>
+        <div class="ios-section">
+          <div class="ios-section-header">Top Kategorien</div>
+          <div class="ios-list" style="padding:14px 16px"><div id="catprog"></div></div>
+        </div>
+        <div class="ios-section">
+          <div class="ios-section-header">Letzte Ausgaben</div>
+          <div class="ios-list"><div id="recent"></div></div>
+        </div>
+        <div style="height:20px"></div>
       </div>
 
-      <!-- EINNAHMEN -->
+      <!-- ── EINNAHMEN ── -->
       <div class="page" id="pg-income">
-        <div class="secrow">
-          <h2 style="font-size:18px;font-weight:600">Einnahmen – <span id="ilbl"></span></h2>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-s" onclick="tf('iform')">+ Neue Einnahme</button>
-            <button class="btn btn-p" onclick="openRecIncModal(null)">🔁 Wiederkehrend</button>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <div style="width:60px"></div>
+            <div class="ios-nav-title">Einnahmen</div>
+            <button class="ios-nav-btn" onclick="tf('iform')">+ Neu</button>
           </div>
         </div>
-
-        <!-- Wiederkehrende Einnahmen -->
-        <div class="card" style="margin-bottom:14px" id="recIncSummaryCard">
-          <div style="font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-            <span>🔁 Wiederkehrende Einnahmen</span>
-            <button onclick="openRecIncModal(null)" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer">+ Neu</button>
-          </div>
-          <div id="recIncList"></div>
-        </div>
-
-        <div class="form-section" id="iform">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px">Einnahme erfassen</div>
-          <div class="fgrid">
-            <div class="fg"><div class="flbl">Datum</div><input type="date" class="fi" id="idate"></div>
-            <div class="fg"><div class="flbl">Kategorie</div><select class="fi fi-sel" id="ic"></select></div>
-            <div class="fg"><div class="flbl">Betrag (CHF)</div><input type="number" class="fi" id="ia" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
-            <div class="fg" style="grid-column:1/-1"><div class="flbl">Notiz</div><input type="text" class="fi" id="inote" placeholder="Optional..."></div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-s" onclick="addTxn('i')"><i class="ti ti-check"></i>Speichern</button>
-            <button class="btn btn-g" onclick="tf('iform')">Abbrechen</button>
+        <!-- Wiederkehrende Einnahmen summary -->
+        <div id="recIncSummaryCard" style="display:none">
+          <div class="ios-section">
+            <div class="ios-section-header" style="display:flex;align-items:center;justify-content:space-between">
+              <span>Wiederkehrend</span>
+              <button onclick="openRecIncModal(null)" style="background:none;border:none;color:var(--ios-blue);font-size:13px;cursor:pointer;font-family:inherit">+ Neu</button>
+            </div>
+            <div id="recIncList"></div>
           </div>
         </div>
-        <div id="inc-list"></div>
+        <!-- Add form (hidden by default) -->
+        <div id="iform" style="display:none">
+          <div class="ios-section">
+            <div class="ios-section-header">Neue Einnahme</div>
+            <div class="ios-form">
+              <div class="ios-form-field">
+                <div class="ios-form-label">Datum</div>
+                <input type="date" class="ios-form-input" id="idate">
+              </div>
+              <div class="ios-form-field">
+                <div class="ios-form-label">Kategorie</div>
+                <select class="ios-form-select" id="ic"></select>
+              </div>
+              <div class="ios-form-field">
+                <div class="ios-form-label">Betrag CHF</div>
+                <input type="number" class="ios-form-input" id="ia" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+              </div>
+              <div class="ios-form-field">
+                <div class="ios-form-label">Notiz</div>
+                <input type="text" class="ios-form-input" id="inote" placeholder="Optional">
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin:10px 16px">
+              <button class="sheet-btn sheet-btn-green" style="margin:0;flex:1" onclick="addTxn('i')">✓ Speichern</button>
+              <button class="sheet-btn sheet-btn-gray" style="margin:0;flex:0 0 90px" onclick="tf('iform')">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+        <div class="ios-section">
+          <div class="ios-section-header" id="ilbl">Einnahmen</div>
+          <div class="ios-list"><div id="inc-list"></div></div>
+        </div>
+        <div style="height:20px"></div>
       </div>
 
-      <!-- AUSGABEN -->
+      <!-- ── AUSGABEN ── -->
       <div class="page" id="pg-expenses">
-        <div class="secrow">
-          <h2 style="font-size:18px;font-weight:600">Ausgaben – <span id="elbl"></span></h2>
-          <button class="btn btn-d" onclick="tf('eform')"><i class="ti ti-plus"></i>Neue Ausgabe</button>
-        </div>
-        <div class="form-section" id="eform">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px">Ausgabe erfassen</div>
-          <div class="fgrid">
-            <div class="fg"><div class="flbl">Datum</div><input type="date" class="fi" id="edate"></div>
-            <div class="fg"><div class="flbl">Kategorie</div><select class="fi fi-sel" id="ec"></select></div>
-            <div class="fg"><div class="flbl">Betrag (CHF)</div><input type="number" class="fi" id="ea" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
-            <div class="fg"><div class="flbl">Zahlungsart</div><select class="fi fi-sel" id="epay"></select></div>
-            <div class="fg" style="grid-column:1/-1"><div class="flbl">Notiz</div><input type="text" class="fi" id="enote" placeholder="Optional..."></div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-d" onclick="addTxn('e')"><i class="ti ti-check"></i>Speichern</button>
-            <button class="btn btn-g" onclick="tf('eform')">Abbrechen</button>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <div style="width:60px"></div>
+            <div class="ios-nav-title">Ausgaben</div>
+            <button class="ios-nav-btn" onclick="tf('eform')">+ Neu</button>
           </div>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-          <input type="text" class="fi" id="esrch" placeholder="Suchen..." style="max-width:180px;padding:7px 12px;font-size:13px" oninput="rExp()">
-          <select class="fi fi-sel" id="efilt" style="max-width:160px;padding:7px 26px 7px 12px;font-size:13px" onchange="rExp()">
-            <option value="">Alle Kategorien</option>
-          </select>
+        <!-- Search + filter -->
+        <div class="ios-search" style="margin:12px 16px 0">
+          <span class="ios-search-icon">🔍</span>
+          <input type="text" id="esrch" placeholder="Suchen…" oninput="rExp()">
         </div>
-        <div id="exp-list"></div>
+        <div style="padding:8px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+          <button id="efilt-all" class="rec-pill rec-pill-blue" onclick="setExpFilt('')">Alle</button>
+          <div id="efilt-pills" style="display:flex;gap:6px"></div>
+        </div>
+        <!-- Add form -->
+        <div id="eform" style="display:none">
+          <div class="ios-section">
+            <div class="ios-section-header">Neue Ausgabe</div>
+            <div class="ios-form">
+              <div class="ios-form-field">
+                <div class="ios-form-label">Datum</div>
+                <input type="date" class="ios-form-input" id="edate">
+              </div>
+              <div class="ios-form-field">
+                <div class="ios-form-label">Kategorie</div>
+                <select class="ios-form-select" id="ec"></select>
+              </div>
+              <div class="ios-form-field">
+                <div class="ios-form-label">Betrag CHF</div>
+                <input type="number" class="ios-form-input" id="ea" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+              </div>
+              <div class="ios-form-field">
+                <div class="ios-form-label">Zahlung</div>
+                <select class="ios-form-select" id="epay"></select>
+              </div>
+              <div class="ios-form-field">
+                <div class="ios-form-label">Notiz</div>
+                <input type="text" class="ios-form-input" id="enote" placeholder="Optional">
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin:10px 16px">
+              <button class="sheet-btn sheet-btn-red" style="margin:0;flex:1" onclick="addTxn('e')">✓ Speichern</button>
+              <button class="sheet-btn sheet-btn-gray" style="margin:0;flex:0 0 90px" onclick="tf('eform')">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+        <div class="ios-section">
+          <div class="ios-section-header" id="elbl">Ausgaben</div>
+          <div class="ios-list"><div id="exp-list"></div></div>
+        </div>
+        <div style="height:20px"></div>
       </div>
 
-      <!-- JAHRESÜBERSICHT -->
+      <!-- ── JAHRESÜBERSICHT ── -->
       <div class="page" id="pg-overview">
-        <div class="secrow"><h2 style="font-size:18px;font-weight:600">Jahresübersicht <span id="ovyrlbl"></span></h2></div>
-        <div class="ytabs" id="ytabs"></div>
-        <div class="card" style="margin-bottom:12px"><div style="position:relative;height:190px"><canvas id="yrC"></canvas></div></div>
-        <div class="card">
-          <div class="ovrow" style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)">
-            <span>Monat</span><span>Verlauf</span><span class="ov-inc" style="text-align:right">Einnahmen</span><span style="text-align:right">Ausgaben</span><span style="text-align:right">Saldo</span>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <div style="width:60px"></div>
+            <div class="ios-nav-title">Jahresübersicht</div>
+            <div style="width:60px"></div>
           </div>
-          <div id="ovrows"></div>
         </div>
+        <div style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none" id="ytabs"></div>
+        <div class="chart-card"><div style="position:relative;height:200px"><canvas id="yrC"></canvas></div></div>
+        <div class="ios-section">
+          <div class="ios-section-header">Monatsdetails <span id="ovyrlbl"></span></div>
+          <div class="ios-list"><div id="ovrows"></div></div>
+        </div>
+        <div style="height:20px"></div>
       </div>
 
-      <!-- STATISTIKEN -->
+      <!-- ── STATISTIKEN ── -->
       <div class="page" id="pg-stats">
-        <h2 style="font-size:18px;font-weight:600;margin-bottom:14px">Statistiken <span id="slbl" style="color:var(--muted)"></span></h2>
-        <div class="charts2">
-          <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">Sparentwicklung</div><div style="position:relative;height:170px"><canvas id="savC"></canvas></div></div>
-          <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">Top-Kategorien – <span id="stlbl"></span></div><div id="topcats"></div></div>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <div style="width:60px"></div>
+            <div class="ios-nav-title">Statistiken</div>
+            <button class="ios-nav-btn" onclick="exportCSV()">CSV</button>
+          </div>
         </div>
-        <div class="card" style="margin-top:12px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:10px">Export</div>
-          <button class="btn btn-g" onclick="exportCSV()"><i class="ti ti-file-spreadsheet"></i>CSV exportieren</button>
+        <div class="chart-card" style="margin-top:16px">
+          <div class="chart-title">Sparentwicklung <span id="slbl" style="font-size:13px;font-weight:400;color:var(--ios-label2)"></span></div>
+          <div style="position:relative;height:180px"><canvas id="savC"></canvas></div>
         </div>
+        <div class="ios-section">
+          <div class="ios-section-header">Top Kategorien – <span id="stlbl"></span></div>
+          <div class="ios-list" style="padding:14px 16px"><div id="topcats"></div></div>
+        </div>
+        <div style="height:20px"></div>
       </div>
 
-      <!-- DAUERAUFTRÄGE -->
+      <!-- ── DAUERAUFTRÄGE ── -->
       <div class="page" id="pg-recurring">
-        <div class="secrow">
-          <div><h2 style="font-size:18px;font-weight:600">Daueraufträge</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">Automatisch in den Monat eingetragen</p></div>
-          <button class="btn btn-p" onclick="openRecModal(null)"><i class="ti ti-plus"></i>Neu</button>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <div style="width:60px"></div>
+            <div class="ios-nav-title">Daueraufträge</div>
+            <button class="ios-nav-btn" onclick="openRecModal(null)">+ Neu</button>
+          </div>
         </div>
-        <div id="rec-summary" class="rec-summary"></div>
-        <div style="font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-          <i class="ti ti-calendar-due" style="color:var(--amber)"></i>Fälligkeiten in <span id="rec-month-lbl" style="margin-left:2px;color:var(--blue)"></span>
+        <div class="ios-section">
+          <div class="ios-section-header" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Fällig in <span id="rec-month-lbl"></span></span>
+          </div>
+          <div id="rec-summary-ios" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none"></div>
         </div>
-        <div class="rec-grid" id="rec-list"></div>
+        <div id="rec-list" style="padding-bottom:8px"></div>
+        <div style="height:20px"></div>
       </div>
 
-      <!-- EINSTELLUNGEN -->
+      <!-- ── EINSTELLUNGEN ── -->
       <div class="page" id="pg-settings">
-        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">Einstellungen</h2>
-
-        <!-- PERSONEN -->
-        <div class="card" style="margin-bottom:14px">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">👥 Personen & Budget-Aufteilung</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Das verbleibende Budget wird gleichmässig auf alle Personen aufgeteilt und im Dashboard angezeigt.</div>
-          <div id="personList" style="margin-bottom:12px"></div>
-          <div style="display:flex;gap:8px">
-            <input type="text" class="fi" id="newPersonName" placeholder="Name (z.B. Ermir)..." style="font-size:13px;padding:8px 12px" onkeydown="if(event.key==='Enter')addPerson()">
-            <button class="btn btn-p" onclick="addPerson()">+ Hinzufügen</button>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <div style="width:60px"></div>
+            <div class="ios-nav-title">Einstellungen</div>
+            <div style="width:60px"></div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:14px">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">📉 Ausgaben-Kategorien</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Ausgaben und Daueraufträgen.</div>
-          <div id="expCatList" style="margin-bottom:12px"></div>
-          <div style="background:var(--bg);border-radius:var(--rs);padding:12px;border:1px solid var(--border)">
-            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Symbol wählen</div>
-            <div id="emojiPickerExp" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
-            <div style="display:flex;gap:8px">
-              <input type="text" class="fi" id="newExpCat" placeholder="Kategoriename..." style="font-size:13px;padding:8px 12px">
-              <button class="btn btn-d" onclick="addCat('exp')">+ Hinzufügen</button>
+        <!-- Personen -->
+        <div class="ios-section">
+          <div class="ios-section-header">👥 Personen & Budget-Aufteilung</div>
+          <div class="ios-list"><div id="personList"></div>
+            <div class="ios-row">
+              <input type="text" id="newPersonName" placeholder="Name hinzufügen…" onkeydown="if(event.key==='Enter')addPerson()"
+                style="flex:1;background:none;border:none;outline:none;font-size:17px;color:var(--ios-label);font-family:inherit">
+              <button onclick="addPerson()" style="color:var(--ios-blue);background:none;border:none;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit">+</button>
             </div>
-            <div style="font-size:11px;color:var(--muted);margin-top:6px">Gewähltes Symbol: <span id="selEmojiExp" style="font-size:16px">🏠</span></div>
           </div>
+          <div class="ios-section-footer">Das Restbudget wird gleichmässig auf alle Personen aufgeteilt.</div>
         </div>
-        <div class="card" style="margin-bottom:14px">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">📈 Einnahmen-Kategorien</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Einnahmen.</div>
-          <div id="incCatList" style="margin-bottom:12px"></div>
-          <div style="background:var(--bg);border-radius:var(--rs);padding:12px;border:1px solid var(--border)">
-            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Symbol wählen</div>
-            <div id="emojiPickerInc" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
-            <div style="display:flex;gap:8px">
-              <input type="text" class="fi" id="newIncCat" placeholder="Kategoriename..." style="font-size:13px;padding:8px 12px">
-              <button class="btn btn-s" onclick="addCat('inc')">+ Hinzufügen</button>
+        <!-- Ausgaben Kategorien -->
+        <div class="ios-section">
+          <div class="ios-section-header">📉 Ausgaben-Kategorien</div>
+          <div class="ios-list"><div id="expCatList"></div>
+            <div class="ios-row" style="flex-direction:column;align-items:stretch;gap:10px;padding:12px 16px">
+              <div style="font-size:13px;font-weight:600;color:var(--ios-label2)">Symbol wählen</div>
+              <div id="emojiPickerExp" class="emoji-grid" style="padding:0"></div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span id="selEmojiExp" style="font-size:22px">🏠</span>
+                <input type="text" id="newExpCat" placeholder="Neue Kategorie…" onkeydown="if(event.key==='Enter')addCat('exp')"
+                  style="flex:1;background:none;border:none;border-bottom:1px solid var(--ios-sep);outline:none;font-size:17px;color:var(--ios-label);padding:6px 0;font-family:inherit">
+                <button onclick="addCat('exp')" style="color:var(--ios-blue);background:none;border:none;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit">+</button>
+              </div>
             </div>
-            <div style="font-size:11px;color:var(--muted);margin-top:6px">Gewähltes Symbol: <span id="selEmojiInc" style="font-size:16px">💰</span></div>
           </div>
         </div>
-        <div class="card">
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">💳 Zahlungsarten</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Verfügbar bei Ausgaben.</div>
-          <div id="payList" style="margin-bottom:12px"></div>
-          <div style="display:flex;gap:8px">
-            <input type="text" class="fi" id="newPay" placeholder="Neue Zahlungsart..." style="font-size:13px;padding:8px 12px">
-            <button class="btn btn-p" onclick="addCat('pay')">+ Hinzufügen</button>
+        <!-- Einnahmen Kategorien -->
+        <div class="ios-section">
+          <div class="ios-section-header">📈 Einnahmen-Kategorien</div>
+          <div class="ios-list"><div id="incCatList"></div>
+            <div class="ios-row" style="flex-direction:column;align-items:stretch;gap:10px;padding:12px 16px">
+              <div style="font-size:13px;font-weight:600;color:var(--ios-label2)">Symbol wählen</div>
+              <div id="emojiPickerInc" class="emoji-grid" style="padding:0"></div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span id="selEmojiInc" style="font-size:22px">💰</span>
+                <input type="text" id="newIncCat" placeholder="Neue Kategorie…" onkeydown="if(event.key==='Enter')addCat('inc')"
+                  style="flex:1;background:none;border:none;border-bottom:1px solid var(--ios-sep);outline:none;font-size:17px;color:var(--ios-label);padding:6px 0;font-family:inherit">
+                <button onclick="addCat('inc')" style="color:var(--ios-blue);background:none;border:none;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit">+</button>
+              </div>
+            </div>
           </div>
         </div>
+        <!-- Zahlungsarten -->
+        <div class="ios-section">
+          <div class="ios-section-header">💳 Zahlungsarten</div>
+          <div class="ios-list"><div id="payList"></div>
+            <div class="ios-row">
+              <input type="text" id="newPay" placeholder="Neue Zahlungsart…" onkeydown="if(event.key==='Enter')addCat('pay')"
+                style="flex:1;background:none;border:none;outline:none;font-size:17px;color:var(--ios-label);font-family:inherit">
+              <button onclick="addCat('pay')" style="color:var(--ios-blue);background:none;border:none;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Familie -->
+        <div class="ios-section">
+          <div class="ios-section-header">Familie</div>
+          <div class="ios-list">
+            <div class="ios-row ios-row-tappable" onclick="switchFamily()">
+              <div class="ios-row-label">🔄 Familie wechseln</div>
+              <div class="ios-row-chevron">›</div>
+            </div>
+          </div>
+        </div>
+        <div style="height:20px"></div>
       </div>
 
-      <!-- HILFE -->
+      <!-- ── HILFE ── -->
       <div class="page" id="pg-help">
-        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">❓ Hilfe & Anleitung</h2>
-        <div class="card" style="margin-bottom:12px">
-          <div style="font-size:15px;font-weight:700;margin-bottom:12px">🚀 Schnellstart</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.8">
-            <p style="margin-bottom:8px"><strong style="color:var(--text)">1. Einnahmen erfassen</strong> — Gehe auf "Einnahmen" → "+ Neue Einnahme". Trage Datum, Kategorie, Betrag und optional eine Notiz ein.</p>
-            <p style="margin-bottom:8px"><strong style="color:var(--text)">2. Ausgaben erfassen</strong> — Gehe auf "Ausgaben" → "+ Neue Ausgabe". Zusätzlich kannst du die Zahlungsart angeben.</p>
-            <p style="margin-bottom:8px"><strong style="color:var(--text)">3. Monat wechseln</strong> — Tippe auf den Monatsnamen oder nutze die Pfeile ◀ ▶. So kannst du vergangene Monate anschauen.</p>
-            <p><strong style="color:var(--text)">4. Dashboard</strong> — Die Übersichtsseite zeigt alle wichtigen Zahlen: Einnahmen, Ausgaben, Sparquote und Top-Kategorien.</p>
+        <div class="ios-nav">
+          <div class="ios-nav-bar">
+            <div style="width:60px"></div>
+            <div class="ios-nav-title">Hilfe</div>
+            <div style="width:60px"></div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:12px">
-          <div style="font-size:15px;font-weight:700;margin-bottom:12px">🔘 Buttons erklärt</div>
-          <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div style="width:42px;height:42px;border-radius:var(--rs);background:var(--bbg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">✏️</div>
-              <div><strong>Bearbeiten</strong><br><span style="color:var(--muted)">Öffnet den Eintrag zum Ändern — z.B. falscher Betrag oder Kategorie.</span></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <div style="width:42px;height:42px;border-radius:var(--rs);background:var(--rbg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">❌</div>
-              <div><strong>Löschen</strong><br><span style="color:var(--muted)">Entfernt den Eintrag permanent — kann nicht rückgängig gemacht werden.</span></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <div style="width:42px;height:42px;border-radius:var(--rs);background:var(--gbg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚡</div>
-              <div><strong>Buchen</strong> (Daueraufträge)<br><span style="color:var(--muted)">Bucht einen Dauerauftrag manuell für den aktuellen Monat.</span></div>
-            </div>
+        <div class="ios-section">
+          <div class="ios-section-header">Schnellstart</div>
+          <div class="ios-list">
+            <div class="help-row"><div class="help-icon">📈</div><div><div class="help-title">Einnahmen erfassen</div><div class="help-text">Tippe auf „+ Neu" oben rechts. Datum, Kategorie und Betrag eingeben — fertig.</div></div></div>
+            <div class="help-row"><div class="help-icon">📉</div><div><div class="help-title">Ausgaben erfassen</div><div class="help-text">Gleich wie Einnahmen, zusätzlich Zahlungsart wählen.</div></div></div>
+            <div class="help-row"><div class="help-icon">📅</div><div><div class="help-title">Monat wechseln</div><div class="help-text">Pfeile ‹ › in der Navigationsleiste oder auf den Monatsnamen tippen für den Monatspicker.</div></div></div>
+            <div class="help-row"><div class="help-icon">🎯</div><div><div class="help-title">Zum aktuellen Monat</div><div class="help-text">„Heute"-Button erscheint automatisch wenn du in einem anderen Monat bist.</div></div></div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:12px">
-          <div style="font-size:15px;font-weight:700;margin-bottom:12px">🔁 Daueraufträge</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.8">
-            <p style="margin-bottom:8px">Daueraufträge sind wiederkehrende Ausgaben wie Miete, Abonnements oder Versicherungen.</p>
-            <p style="margin-bottom:8px"><strong style="color:var(--text)">Automatisch:</strong> Beim Öffnen eines Monats werden fällige Daueraufträge automatisch als Ausgabe eingetragen.</p>
-            <p style="margin-bottom:8px"><strong style="color:var(--text)">Überspringen:</strong> Falls ein Dauerauftrag in einem Monat nicht fällig ist, kannst du ihn überspringen.</p>
-            <p><strong style="color:var(--text)">Intervalle:</strong> Monatlich, Quartalsweise, Halbjährlich oder Jährlich.</p>
+        <div class="ios-section">
+          <div class="ios-section-header">Aktionen</div>
+          <div class="ios-list">
+            <div class="help-row"><div class="help-icon">✏️</div><div><div class="help-title">Bearbeiten</div><div class="help-text">Blauer Stift-Button rechts bei jedem Eintrag — öffnet Bearbeitungsformular.</div></div></div>
+            <div class="help-row"><div class="help-icon">❌</div><div><div class="help-title">Löschen</div><div class="help-text">Roter X-Button — unwiderruflich. Bitte sorgfältig tippen.</div></div></div>
+            <div class="help-row"><div class="help-icon">⚡</div><div><div class="help-title">Manuell buchen</div><div class="help-text">Bei Daueraufträgen — bucht den Eintrag sofort für den aktuellen Monat.</div></div></div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:12px">
-          <div style="font-size:15px;font-weight:700;margin-bottom:12px">👨‍👩‍👧 Familie & Einladung</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.8">
-            <p style="margin-bottom:8px"><strong style="color:var(--text)">Einladungscode:</strong> Tippe oben rechts auf deinen Avatar. Dort siehst du den 6-stelligen Code.</p>
-            <p style="margin-bottom:8px"><strong style="color:var(--text)">Code teilen:</strong> Tippe "Kopieren" und schicke ihn per WhatsApp oder SMS.</p>
-            <p><strong style="color:var(--text)">Beitreten:</strong> Familienmitglied registriert sich → "Familie beitreten" → Code eingeben → sofort gemeinsame Daten.</p>
+        <div class="ios-section">
+          <div class="ios-section-header">Familie & Synchronisation</div>
+          <div class="ios-list">
+            <div class="help-row"><div class="help-icon">🔗</div><div><div class="help-title">Familienmitglied einladen</div><div class="help-text">Avatar oben links → Einladungscode kopieren und teilen. Das Mitglied registriert sich und gibt den Code ein.</div></div></div>
+            <div class="help-row"><div class="help-icon">☁️</div><div><div class="help-title">Automatische Synchronisation</div><div class="help-text">Alle Änderungen werden sofort in der Cloud gespeichert — iPhone, MacBook, überall gleich.</div></div></div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:12px">
-          <div style="font-size:15px;font-weight:700;margin-bottom:12px">⚙️ Einstellungen</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.8">
-            <p style="margin-bottom:8px">Eigene Kategorien für Einnahmen und Ausgaben hinzufügen oder löschen.</p>
-            <p>Neue Kategorien stehen sofort in allen Dropdowns zur Verfügung — auch für alle Familienmitglieder.</p>
-          </div>
-        </div>
-        <div class="card">
-          <div style="font-size:15px;font-weight:700;margin-bottom:12px">☁️ Synchronisierung</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.8">
-            <p style="margin-bottom:8px">Alle Daten werden automatisch in der Cloud gespeichert — iPhone, MacBook, PC, überall.</p>
-            <p style="margin-bottom:8px">Das Cloud-Symbol oben rechts zeigt ob gerade gespeichert wird.</p>
-            <p>Falls Daten nicht aktuell sind: Avatar tippen → "Sync".</p>
-          </div>
-        </div>
+        <div style="height:20px"></div>
       </div>
 
-    </div>
+    </div><!-- /ios-content -->
+  </div><!-- /ios-scroll -->
+
+  <!-- BOTTOM TAB BAR (mobile) -->
+  <div class="ios-tab-bar">
+    <button class="ios-tab active" id="tab-dash" onclick="go('dash')">
+      <span class="ios-tab-icon">🏠</span><span class="ios-tab-label">Übersicht</span>
+    </button>
+    <button class="ios-tab" id="tab-income" onclick="go('income')">
+      <span class="ios-tab-icon">📈</span><span class="ios-tab-label">Einnahmen</span>
+    </button>
+    <button class="ios-tab" id="tab-expenses" onclick="go('expenses')">
+      <span class="ios-tab-icon">📉</span><span class="ios-tab-label">Ausgaben</span>
+    </button>
+    <button class="ios-tab" id="tab-recurring" onclick="go('recurring')">
+      <span class="ios-tab-icon">🔁</span><span class="ios-tab-label">Aufträge</span>
+    </button>
+    <button class="ios-tab" id="tab-settings" onclick="go('settings')">
+      <span class="ios-tab-icon">⚙️</span><span class="ios-tab-label">Mehr</span>
+    </button>
   </div>
 
-  <!-- Bottom nav entfernt — Hamburger-Menü übernimmt Mobile -->
-</div>
+</div><!-- /app -->
 
-<!-- MODALS -->
-<div class="overlay" id="pickerOverlay" style="display:none" onclick="if(event.target===this)closePicker()">
-  <div class="picker">
-    <div class="drag-handle"></div>
-    <div class="picker-year">
-      <button class="ynbtn" onclick="py--;renderPicker()"><i class="ti ti-chevron-left"></i></button>
-      <strong id="pylbl">2026</strong>
-      <button class="ynbtn" onclick="py++;renderPicker()"><i class="ti ti-chevron-right"></i></button>
-    </div>
-    <div class="mgrid" id="mgrid"></div>
-    <div class="picker-legend">
-      <span><span class="swatch" style="background:var(--blue)"></span>Gewählt</span>
-      <span><span class="swatch" style="background:var(--bg);border:1px solid var(--border)"></span>Mit Daten</span>
-    </div>
-    <button class="btn btn-g" style="width:100%;justify-content:center" onclick="closePicker()">Schliessen</button>
-  </div>
-</div>
+<!-- ══ MODALS ══ -->
 
-<div class="overlay" id="recOverlay" style="display:none" onclick="if(event.target===this)closeRecModal()">
-  <div class="modal-lg">
-    <div class="drag-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="font-size:15px;font-weight:600" id="recModalTitle">Neuer Dauerauftrag</h3>
-      <button class="btn btn-g btn-sm" onclick="closeRecModal()"><i class="ti ti-x"></i></button>
+<!-- Month Picker -->
+<div class="sheet-overlay" id="pickerOverlay" style="display:none" onclick="if(event.target===this)closePicker()">
+  <div class="sheet" style="max-width:440px">
+    <div class="sheet-handle"></div>
+    <div class="year-nav">
+      <button class="year-nav-btn" onclick="py--;renderPicker()">‹</button>
+      <div class="year-label" id="pylbl">2026</div>
+      <button class="year-nav-btn" onclick="py++;renderPicker()">›</button>
     </div>
-    <div class="fgrid">
-      <div class="fg" style="grid-column:1/-1"><label class="flbl">Bezeichnung *</label><input type="text" class="fi" id="r-name" placeholder="z.B. Miete, Netflix..."></div>
-      <div class="fg"><label class="flbl">Betrag (CHF) *</label><input type="number" class="fi" id="r-amount" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="fg"><label class="flbl">Kategorie</label>
-        <select class="fi fi-sel" id="r-cat"><option>Miete</option><option>Versicherungen</option><option>Lebensmittel</option><option>Auto</option><option>Streaming</option><option>Gesundheit</option><option>Kleidung</option><option>Freizeit</option><option>Ferien</option><option>Sonstige</option></select></div>
-      <div class="fg"><label class="flbl">Fällig am (Tag)</label><input type="number" class="fi" id="r-day" min="1" max="31" value="1" inputmode="numeric"></div>
-      <div class="fg"><label class="flbl">Zahlungsart</label>
-        <select class="fi fi-sel" id="r-pay"><option>Banküberweisung</option><option>Kreditkarte</option><option>Bar</option><option>TWINT</option></select></div>
-      <div class="fg" style="grid-column:1/-1"><label class="flbl">Intervall</label>
-        <select class="fi fi-sel" id="r-interval"><option value="monthly">Monatlich</option><option value="quarterly">Quartalsweise</option><option value="biannual">Halbjährlich</option><option value="yearly">Jährlich</option></select></div>
-      <div class="fg"><label class="flbl">Gültig ab *</label><input type="month" class="fi" id="r-from"></div>
-      <div class="fg"><label class="flbl">Gültig bis (leer = unbegrenzt)</label><input type="month" class="fi" id="r-until"></div>
-      <div class="fg" style="grid-column:1/-1"><label class="flbl">Notiz</label><input type="text" class="fi" id="r-note" placeholder="Optional..."></div>
-    </div>
-    <input type="hidden" id="r-edit-id">
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button class="btn btn-p" onclick="saveRec()"><i class="ti ti-check"></i>Speichern</button>
-      <button class="btn btn-g" onclick="closeRecModal()">Abbrechen</button>
-    </div>
+    <div class="month-grid" id="mgrid"></div>
+    <button class="sheet-btn sheet-btn-gray" onclick="closePicker()">Schliessen</button>
   </div>
 </div>
 
-<!-- EDIT EINNAHME MODAL -->
-<div class="overlay" id="editIncOverlay" style="display:none" onclick="if(event.target===this)closeEditInc()">
-  <div class="modal-lg">
-    <div class="drag-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="font-size:15px;font-weight:600">Einnahme bearbeiten</h3>
-      <button class="btn btn-g btn-sm" onclick="closeEditInc()"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="fgrid">
-      <div class="fg"><label class="flbl">Datum</label><input type="date" class="fi" id="ei-date"></div>
-      <div class="fg"><label class="flbl">Kategorie</label><select class="fi fi-sel" id="ei-cat"></select></div>
-      <div class="fg"><label class="flbl">Betrag (CHF)</label><input type="number" class="fi" id="ei-amount" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="fg" style="grid-column:1/-1"><label class="flbl">Notiz</label><input type="text" class="fi" id="ei-note"></div>
+<!-- Edit Income -->
+<div class="sheet-overlay" id="editIncOverlay" style="display:none" onclick="if(event.target===this)closeEditInc()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><div class="sheet-title">Einnahme bearbeiten</div><button class="sheet-close" onclick="closeEditInc()">✕</button></div>
+    <div class="ios-form" style="margin-top:8px">
+      <div class="ios-form-field"><div class="ios-form-label">Datum</div><input type="date" class="ios-form-input" id="ei-date"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Kategorie</div><select class="ios-form-select" id="ei-cat"></select></div>
+      <div class="ios-form-field"><div class="ios-form-label">Betrag CHF</div><input type="number" class="ios-form-input" id="ei-amount" step="0.01" inputmode="decimal"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Notiz</div><input type="text" class="ios-form-input" id="ei-note"></div>
     </div>
     <input type="hidden" id="ei-id">
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button class="btn btn-s" onclick="saveEditInc()"><i class="ti ti-check"></i>Speichern</button>
-      <button class="btn btn-g" onclick="closeEditInc()">Abbrechen</button>
-    </div>
+    <button class="sheet-btn sheet-btn-green" onclick="saveEditInc()">✓ Speichern</button>
+    <button class="sheet-btn sheet-btn-gray" onclick="closeEditInc()">Abbrechen</button>
   </div>
 </div>
 
-<!-- EDIT AUSGABE MODAL -->
-<div class="overlay" id="editExpOverlay" style="display:none" onclick="if(event.target===this)closeEditExp()">
-  <div class="modal-lg">
-    <div class="drag-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="font-size:15px;font-weight:600">Ausgabe bearbeiten</h3>
-      <button class="btn btn-g btn-sm" onclick="closeEditExp()"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="fgrid">
-      <div class="fg"><label class="flbl">Datum</label><input type="date" class="fi" id="ee-date"></div>
-      <div class="fg"><label class="flbl">Kategorie</label><select class="fi fi-sel" id="ee-cat"></select></div>
-      <div class="fg"><label class="flbl">Betrag (CHF)</label><input type="number" class="fi" id="ee-amount" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="fg"><label class="flbl">Zahlungsart</label><select class="fi fi-sel" id="ee-pay"></select></div>
-      <div class="fg" style="grid-column:1/-1"><label class="flbl">Notiz</label><input type="text" class="fi" id="ee-note"></div>
+<!-- Edit Expense -->
+<div class="sheet-overlay" id="editExpOverlay" style="display:none" onclick="if(event.target===this)closeEditExp()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><div class="sheet-title">Ausgabe bearbeiten</div><button class="sheet-close" onclick="closeEditExp()">✕</button></div>
+    <div class="ios-form" style="margin-top:8px">
+      <div class="ios-form-field"><div class="ios-form-label">Datum</div><input type="date" class="ios-form-input" id="ee-date"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Kategorie</div><select class="ios-form-select" id="ee-cat"></select></div>
+      <div class="ios-form-field"><div class="ios-form-label">Betrag CHF</div><input type="number" class="ios-form-input" id="ee-amount" step="0.01" inputmode="decimal"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Zahlung</div><select class="ios-form-select" id="ee-pay"></select></div>
+      <div class="ios-form-field"><div class="ios-form-label">Notiz</div><input type="text" class="ios-form-input" id="ee-note"></div>
     </div>
     <input type="hidden" id="ee-id">
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button class="btn btn-d" onclick="saveEditExp()"><i class="ti ti-check"></i>Speichern</button>
-      <button class="btn btn-g" onclick="closeEditExp()">Abbrechen</button>
-    </div>
+    <button class="sheet-btn sheet-btn-red" onclick="saveEditExp()">✓ Speichern</button>
+    <button class="sheet-btn sheet-btn-gray" onclick="closeEditExp()">Abbrechen</button>
   </div>
 </div>
 
-<!-- WIEDERKEHRENDE EINNAHME MODAL -->
-<div class="overlay" id="recIncOverlay" style="display:none" onclick="if(event.target===this)closeRecIncModal()">
-  <div class="modal-lg">
-    <div class="drag-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="font-size:15px;font-weight:600" id="recIncModalTitle">Wiederkehrende Einnahme</h3>
-      <button class="btn btn-g btn-sm" onclick="closeRecIncModal()">✕</button>
-    </div>
-    <div class="fgrid">
-      <div class="fg" style="grid-column:1/-1"><label class="flbl">Bezeichnung *</label><input type="text" class="fi" id="ri-name" placeholder="z.B. Lohn Ermir, Rente..."></div>
-      <div class="fg"><label class="flbl">Betrag (CHF) *</label><input type="number" class="fi" id="ri-amount" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="fg"><label class="flbl">Kategorie</label><select class="fi fi-sel" id="ri-cat"></select></div>
-      <div class="fg"><label class="flbl">Am (Tag des Monats)</label><input type="number" class="fi" id="ri-day" min="1" max="31" value="1" inputmode="numeric"></div>
-      <div class="fg"><label class="flbl">Intervall</label>
-        <select class="fi fi-sel" id="ri-interval">
+<!-- Recurring Expense Modal -->
+<div class="sheet-overlay" id="recOverlay" style="display:none" onclick="if(event.target===this)closeRecModal()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><div class="sheet-title" id="recModalTitle">Neuer Dauerauftrag</div><button class="sheet-close" onclick="closeRecModal()">✕</button></div>
+    <div class="ios-form" style="margin-top:8px">
+      <div class="ios-form-field"><div class="ios-form-label">Name</div><input type="text" class="ios-form-input" id="r-name" placeholder="z.B. Miete"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Betrag CHF</div><input type="number" class="ios-form-input" id="r-amount" step="0.01" inputmode="decimal"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Kategorie</div><select class="ios-form-select" id="r-cat"></select></div>
+      <div class="ios-form-field"><div class="ios-form-label">Tag des Monats</div><input type="number" class="ios-form-input" id="r-day" min="1" max="31" value="1" inputmode="numeric"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Zahlung</div><select class="ios-form-select" id="r-pay"></select></div>
+      <div class="ios-form-field"><div class="ios-form-label">Intervall</div>
+        <select class="ios-form-select" id="r-interval">
           <option value="monthly">Monatlich</option><option value="quarterly">Quartalsweise</option>
           <option value="biannual">Halbjährlich</option><option value="yearly">Jährlich</option>
         </select>
       </div>
-      <div class="fg"><label class="flbl">Gültig ab *</label><input type="month" class="fi" id="ri-from"></div>
-      <div class="fg"><label class="flbl">Gültig bis (leer = unbegrenzt)</label><input type="month" class="fi" id="ri-until"></div>
-      <div class="fg" style="grid-column:1/-1"><label class="flbl">Notiz</label><input type="text" class="fi" id="ri-note" placeholder="Optional..."></div>
+      <div class="ios-form-field"><div class="ios-form-label">Gültig ab</div><input type="month" class="ios-form-input" id="r-from"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Gültig bis</div><input type="month" class="ios-form-input" id="r-until" placeholder="Unbegrenzt"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Notiz</div><input type="text" class="ios-form-input" id="r-note" placeholder="Optional"></div>
+    </div>
+    <input type="hidden" id="r-edit-id">
+    <button class="sheet-btn sheet-btn-blue" onclick="saveRec()">✓ Speichern</button>
+    <button class="sheet-btn sheet-btn-gray" onclick="closeRecModal()">Abbrechen</button>
+  </div>
+</div>
+
+<!-- Recurring Income Modal -->
+<div class="sheet-overlay" id="recIncOverlay" style="display:none" onclick="if(event.target===this)closeRecIncModal()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><div class="sheet-title" id="recIncModalTitle">Wiederkehrende Einnahme</div><button class="sheet-close" onclick="closeRecIncModal()">✕</button></div>
+    <div class="ios-form" style="margin-top:8px">
+      <div class="ios-form-field"><div class="ios-form-label">Name</div><input type="text" class="ios-form-input" id="ri-name" placeholder="z.B. Lohn Ermir"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Betrag CHF</div><input type="number" class="ios-form-input" id="ri-amount" step="0.01" inputmode="decimal"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Kategorie</div><select class="ios-form-select" id="ri-cat"></select></div>
+      <div class="ios-form-field"><div class="ios-form-label">Tag des Monats</div><input type="number" class="ios-form-input" id="ri-day" min="1" max="31" value="1" inputmode="numeric"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Intervall</div>
+        <select class="ios-form-select" id="ri-interval">
+          <option value="monthly">Monatlich</option><option value="quarterly">Quartalsweise</option>
+          <option value="biannual">Halbjährlich</option><option value="yearly">Jährlich</option>
+        </select>
+      </div>
+      <div class="ios-form-field"><div class="ios-form-label">Gültig ab</div><input type="month" class="ios-form-input" id="ri-from"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Gültig bis</div><input type="month" class="ios-form-input" id="ri-until" placeholder="Unbegrenzt"></div>
+      <div class="ios-form-field"><div class="ios-form-label">Notiz</div><input type="text" class="ios-form-input" id="ri-note" placeholder="Optional"></div>
     </div>
     <input type="hidden" id="ri-edit-id">
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button class="btn btn-s" onclick="saveRecInc()">✓ Speichern</button>
-      <button class="btn btn-g" onclick="closeRecIncModal()">Abbrechen</button>
-    </div>
+    <button class="sheet-btn sheet-btn-green" onclick="saveRecInc()">✓ Speichern</button>
+    <button class="sheet-btn sheet-btn-gray" onclick="closeRecIncModal()">Abbrechen</button>
   </div>
 </div>
 
-<div class="overlay" id="userOverlay" style="display:none" onclick="if(event.target===this)closeUserMenu()">
-  <div class="picker" style="max-width:360px">
-    <div class="drag-handle"></div>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <div id="menuAvatar" style="width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0"></div>
-      <div><div id="menuEmail" style="font-size:14px;font-weight:600"></div><div style="font-size:12px;color:var(--muted)" id="menuFamily"></div></div>
-    </div>
-
-    <!-- Invite Code -->
-    <div style="background:var(--bbg);border:1px solid #bfdbfe;border-radius:var(--rs);padding:14px;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-users"></i>Familienmitglied einladen</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-        <div style="font-size:22px;font-weight:800;letter-spacing:6px;color:var(--text);font-family:monospace" id="inviteCodeDisplay">——</div>
-        <button class="btn btn-p btn-sm" onclick="copyInviteCode()"><i class="ti ti-copy"></i>Kopieren</button>
+<!-- User Panel -->
+<div class="sheet-overlay" id="userOverlay" style="display:none" onclick="if(event.target===this)closeUserMenu()">
+  <div class="sheet" style="max-width:440px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="menuAvatar" style="width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0"></div>
+        <div><div id="menuEmail" style="font-size:16px;font-weight:600;color:var(--ios-label)"></div><div id="menuFamily" style="font-size:13px;color:var(--ios-label2)"></div></div>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">Teile diesen Code mit Familienmitgliedern</div>
+      <button class="sheet-close" onclick="closeUserMenu()">✕</button>
     </div>
-
+    <!-- Invite code -->
+    <div style="margin:0 16px;background:rgba(0,122,255,.08);border-radius:14px;padding:16px;text-align:center">
+      <div style="font-size:13px;font-weight:600;color:var(--ios-blue);margin-bottom:4px">Einladungscode</div>
+      <div class="invite-code-big" id="inviteCodeDisplay">——</div>
+      <button onclick="copyInviteCode()" style="background:var(--ios-blue);color:#fff;border:none;border-radius:10px;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Kopieren</button>
+    </div>
     <!-- Members -->
-    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Familienmitglieder</div>
-    <div id="membersList"></div>
-
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-      <button class="btn btn-g" style="flex:1;justify-content:center;min-width:100px" onclick="syncNow()"><i class="ti ti-refresh"></i>Sync</button>
-      <button class="btn btn-g" style="flex:1;justify-content:center;min-width:100px" onclick="switchFamily()">🔄 Familie wechseln</button>
-      <button class="btn" style="width:100%;justify-content:center;background:var(--rbg);color:var(--red);border-color:var(--rbg)" onclick="doLogout()"><i class="ti ti-logout"></i>Abmelden</button>
-    </div>
+    <div style="margin:16px 16px 8px;font-size:13px;font-weight:600;color:var(--ios-label2);text-transform:uppercase;letter-spacing:.5px">Familienmitglieder</div>
+    <div class="ios-list"><div id="membersList"></div></div>
+    <button class="sheet-btn sheet-btn-blue" onclick="syncNow()">☁️ Synchronisieren</button>
+    <button class="sheet-btn sheet-btn-gray" onclick="doLogout()">Abmelden</button>
   </div>
 </div>
 
-<div class="toast" id="toastEl"></div>
+<div class="ios-toast" id="toastEl"></div>
 
 <script>
+
 'use strict';
 // ═══════════════════════════════════════════════════════════
 // SUPABASE INIT
@@ -1190,6 +1343,9 @@ function save(isRec=false){
 }
 
 function showSyncPill(state){
+  const dot=document.getElementById('syncDot');
+  if(dot){dot.style.display='inline-block';dot.className='sync-dot sync-'+state;
+    if(state==='saved')setTimeout(()=>{dot.style.display='none'},3000);}
   const p=document.getElementById('syncPill');
   p.style.display='inline-flex';
   if(state==='saving'){p.className='sync-pill saving';p.innerHTML='<i class="ti ti-cloud spinning"></i>';}
@@ -1218,8 +1374,10 @@ function showApp(){
   const colorIdx=email.charCodeAt(0)%AVATAR_COLORS.length;
   const color=AVATAR_COLORS[colorIdx];
   const btn=document.getElementById('userBtn');
+  const nav=document.getElementById('userAvatarNav');
   btn.textContent=initial;btn.style.background=color+'33';btn.style.color=color;
-  document.getElementById('brandFamily').textContent=currentFamily?.name||'';
+  if(nav){nav.textContent=initial;nav.style.background=color+'33';nav.style.color=color;}
+  document.getElementById('brandFamily').textContent=currentFamily?.name||'FamilyBudget';
   updMon();rDash();
 }
 
@@ -1260,10 +1418,10 @@ async function openUserMenu(){
   const {data:members}=await sb.from('profiles').select('*').eq('family_id',currentFamily.id);
   document.getElementById('membersList').innerHTML=(members||[]).map(m=>{
     const c=AVATAR_COLORS[m.username?.charCodeAt(0)%AVATAR_COLORS.length||0];
-    return `<div class="member-chip">
-      <div class="member-avatar" style="background:${c}22;color:${c}">${(m.username||'?')[0].toUpperCase()}</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:500">${m.username||'Unbekannt'}</div><div style="font-size:11px;color:var(--muted)">${m.role==='admin'?'Administrator':'Mitglied'}</div></div>
-      ${m.id===currentUser.id?'<span style="font-size:10px;background:var(--bbg);color:var(--blue);padding:2px 6px;border-radius:10px;font-weight:600">Du</span>':''}
+    return `<div class="member-row">
+      <div style="width:38px;height:38px;border-radius:50%;background:${c}22;color:${c};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${(m.username||'?')[0].toUpperCase()}</div>
+      <div style="flex:1"><div style="font-size:16px;font-weight:500;color:var(--ios-label)">${m.username||'Unbekannt'}</div><div style="font-size:13px;color:var(--ios-label2)">${m.role==='admin'?'Administrator':'Mitglied'}</div></div>
+      ${m.id===currentUser.id?'<span class="ios-badge ios-badge-blue">Du</span>':''}
     </div>`;
   }).join('');
   document.getElementById('userOverlay').style.display='flex';
@@ -1386,11 +1544,13 @@ function go(p){
   ap=p;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.bntab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ios-tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.desk-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('pg-'+p).classList.add('active');
   const idx={dash:0,income:1,expenses:2,overview:3,stats:4,recurring:5,settings:6,help:7}[p]||0;
   document.querySelectorAll('.ntab')[idx]?.classList.add('active');
-  const bn=document.getElementById('bn-'+p);if(bn)bn.classList.add('active');
+  const bn=document.getElementById('tab-'+p);if(bn)bn.classList.add('active');
+  const dt=document.getElementById('dt-'+p);if(dt)dt.classList.add('active');
   document.getElementById('mainScroll').scrollTo(0,0);
   render(p);
 }
@@ -1411,43 +1571,40 @@ function rDash(){
   const bookedInc=autoBookRecInc();
   const notice=document.getElementById('rec-auto-notice');
   const noticeInc=document.getElementById('rec-inc-notice');
-  if(booked.length){notice.style.display='flex';notice.innerHTML=`<i class="ti ti-repeat" style="font-size:14px;flex-shrink:0"></i><span><strong>${booked.length} Dauerauftrag${booked.length>1?'äge':''} automatisch eingetragen:</strong> ${booked.join(', ')}</span>`;}
+  if(booked.length){notice.style.display='block';notice.className='ios-notice ios-notice-orange';notice.innerHTML=`<span class="ios-notice-dot"></span><span>🔁 <strong>${booked.length} Dauerauftrag${booked.length>1?'äge':''} automatisch eingetragen:</strong> ${booked.join(', ')}</span>`;}
   else{notice.style.display='none';}
-  if(bookedInc.length){noticeInc.style.display='flex';noticeInc.innerHTML=`<span>💰 <strong>${bookedInc.length} Einnahme${bookedInc.length>1?'n':''} automatisch eingetragen:</strong> ${bookedInc.join(', ')}</span>`;}
+  if(bookedInc.length){noticeInc.style.display='block';noticeInc.className='ios-notice ios-notice-green';noticeInc.innerHTML=`<span class="ios-notice-dot"></span><span>💰 <strong>${bookedInc.length} Einnahme${bookedInc.length>1?'n':''} eingetragen:</strong> ${bookedInc.join(', ')}</span>`;}
   else{noticeInc.style.display='none';}
   const t=ttl(ck());
   const pct=t.i>0?Math.min(100,Math.round(t.s/t.i*100)):0;
-  document.getElementById('dtitle').textContent=lbl();
+  document.getElementById('dtitle').textContent=lbl();if(document.getElementById('dtitle'))document.getElementById('dtitle').textContent=lbl();
   document.getElementById('dsubtitle').textContent='Monatsübersicht · '+(currentFamily?.name||'');
   document.getElementById('dstatus').innerHTML=t.r>=0
     ?`<span style="background:var(--gbg);color:var(--green);padding:4px 10px;border-radius:var(--rs);font-size:12px;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-trending-up"></i>Budget im Plus</span>`
     :`<span style="background:var(--rbg);color:var(--red);padding:4px 10px;border-radius:var(--rs);font-size:12px;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-trending-down"></i>Budget überschritten</span>`;
   document.getElementById('scards').innerHTML=`
-    <div class="metric" style="background:var(--bbg)"><div class="mlbl"><i class="ti ti-trending-up cb"></i>Einnahmen</div><div class="mval cb">${fmt(t.i)}</div><div class="msub">${md().income.length} Positionen</div></div>
-    <div class="metric" style="background:var(--rbg)"><div class="mlbl"><i class="ti ti-trending-down cr"></i>Ausgaben</div><div class="mval cr">${fmt(t.e)}</div><div class="msub">${md().expenses.length} Positionen</div></div>
-    <div class="metric" style="background:${t.r>=0?'var(--gbg)':'var(--rbg)'}"><div class="mlbl"><i class="ti ti-wallet ${t.r>=0?'cg':'cr'}"></i>Restbudget</div><div class="mval ${t.r>=0?'cg':'cr'}">${fmt(Math.abs(t.r))}</div><div class="msub">${t.r>=0?'verfügbar':'überschritten'}</div></div>
-    <div class="metric" style="background:var(--abg)"><div class="mlbl"><i class="ti ti-piggy-bank ca"></i>Ersparnisse</div><div class="mval ca">${fmt(t.s)}</div><div class="msub">Sparquote ${pct}%</div></div>`;
+    <div class="metric-card"><div class="metric-card-label">Einnahmen</div><div class="metric-card-value mc-green">${fmt(t.i)}</div><div class="metric-card-sub">${md().income.length} Positionen</div><div class="metric-card-icon mc-green-bg">📈</div></div>
+    <div class="metric-card"><div class="metric-card-label">Ausgaben</div><div class="metric-card-value mc-red">${fmt(t.e)}</div><div class="metric-card-sub">${md().expenses.length} Positionen</div><div class="metric-card-icon mc-red-bg">📉</div></div>
+    <div class="metric-card"><div class="metric-card-label">Restbudget</div><div class="metric-card-value ${t.r>=0?'mc-blue':'mc-red'}">${fmt(Math.abs(t.r))}</div><div class="metric-card-sub">${t.r>=0?'verfügbar':'überschritten'}</div><div class="metric-card-icon ${t.r>=0?'mc-blue-bg':'mc-red-bg'}">${t.r>=0?'💙':'⚠️'}</div></div>
+    <div class="metric-card"><div class="metric-card-label">Ersparnisse</div><div class="metric-card-value mc-orange">${fmt(t.s)}</div><div class="metric-card-sub">Sparquote ${pct}%</div><div class="metric-card-icon mc-orange-bg">🏦</div></div>`;
   document.getElementById('sarc').setAttribute('stroke-dasharray',`${Math.PI*2*40*pct/100} ${Math.PI*2*40}`);
   document.getElementById('spct').textContent=pct+'%';
   document.getElementById('sdet').textContent=`${fmt(t.s)} von ${fmt(t.i)} gespart`;
   const recent=[...md().expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
   document.getElementById('recent').innerHTML=recent.length
-    ?recent.map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="width:36px;height:36px;border-radius:var(--rs);background:${catColor(e.cat)}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">${catEmoji(e.cat)||'📦'}</div>
-      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.cat}</div><div style="font-size:11px;color:var(--muted)">${fd(e.date)}${e.note?' · '+e.note:''}</div></div>
-      <div style="font-size:13px;font-weight:600;color:var(--red);flex-shrink:0">-${fmt(e.amount)}</div></div>`).join('')
-    :`<div class="empty"><i class="ti ti-inbox"></i>Keine Ausgaben für ${lbl()}</div>`;
+    ?recent.map(e=>`<div class="txn-row">
+      <div class="txn-icon" style="background:${catColor(e.cat)}18">${catEmoji(e.cat)||'📦'}</div>
+      <div class="txn-body"><div class="txn-title">${e.cat}</div><div class="txn-sub">${fd(e.date)}${e.note?' · '+e.note:''}</div></div>
+      <div class="txn-amount mc-red">-${fmt(e.amount)}</div>
+    </div>`).join('')
+    :`<div class="ios-empty"><span class="ios-empty-icon">📭</span><div class="ios-empty-title">Keine Ausgaben</div><div class="ios-empty-sub">für ${lbl()}</div></div>`;
   const cats={};md().expenses.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
   document.getElementById('catprog').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([cat,amt])=>{
     const p2=t.e>0?Math.round(amt/t.e*100):0;
-    return `<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
-      <span style="font-size:15px">${catEmoji(cat)||'📦'}</span>
-      <span style="flex:1;font-size:12px;font-weight:500">${cat}</span>
-      <span style="font-size:12px;color:var(--muted)">${fmt(amt)}</span>
-    </div><div class="pw"><div class="pb" style="width:${p2}%;background:${catColor(cat)}"></div></div></div>`;
+    return `<div class="prog-row"><div class="prog-row-header"><span class="prog-emoji">${catEmoji(cat)||'📦'}</span><span class="prog-label">${cat}</span><span class="prog-value">${fmt(amt)}</span></div><div class="prog-track"><div class="prog-fill" style="width:${p2}%;background:${catColor(cat)}"></div></div></div>`;
   }).join('');
   const labels=Object.keys(cats),data=Object.values(cats),colors=labels.map(c=>catColor(c));
-  document.getElementById('pieLeg').innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${catEmoji(l)||'📦'}</span>${l}</span>`).join('');
+  document.getElementById('pieLeg').innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--ios-label2)"><span>${catEmoji(l)||'📦'}</span>${l}</span>`).join('');
   if(pC)pC.destroy();
   pC=new Chart(document.getElementById('pieC'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.raw)}`}}}}});
   if(bC)bC.destroy();
@@ -1466,14 +1623,11 @@ function rInc(){
   const rows=[...md().income].sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('inc-list');
   if(!rows.length){
-    el.innerHTML=`<div class="empty"><i class="ti ti-inbox"></i>Keine Einnahmen für ${lbl()}</div>`;return;
+    el.innerHTML=`<div class="ios-empty"><span class="ios-empty-icon">📭</span><div class="ios-empty-title">Keine Einnahmen</div><div class="ios-empty-sub">für ${lbl()}</div></div>`;return;
   }
   el.innerHTML=rows.map(e=>`
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:42px;height:42px;border-radius:var(--r);background:${catColor(e.cat)}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">
-          ${catEmoji(e.cat)||`<i class="ti ${CI[e.cat]||'ti-coin'}" style="color:${catColor(e.cat)};font-size:18px"></i>`}
-        </div>
+    <div class="txn-row">
+      <div class="txn-icon" style="background:${catColor(e.cat)}18">${catEmoji(e.cat)||'💰'}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:700;color:var(--green)">+ ${fmt(e.amount)}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">${e.cat} · ${fd(e.date)}</div>
@@ -1486,30 +1640,35 @@ function rInc(){
       </div>
     </div>`).join('');
 }
+function setExpFilt(cat){
+  window._expFilt=cat;
+  document.querySelectorAll('#efilt-pills .rec-pill,#efilt-all').forEach(b=>b.classList.remove('rec-pill-blue'));
+  if(!cat) document.getElementById('efilt-all')?.classList.add('rec-pill-blue');
+  rExp();
+}
 function rExp(){
   document.getElementById('elbl').textContent=lbl();
   // Populate all dynamic selects
   const ec=document.getElementById('ec');
+  const epills=document.getElementById('efilt-pills');
+  if(epills)epills.innerHTML=CATS.exp.map(c=>{const n=typeof c==='object'?c.n:c;const e=typeof c==='object'?c.e:'';return `<button class="rec-pill rec-pill-gray" onclick="setExpFilt('${n}')">${e} ${n}</button>`}).join('');
   if(ec) ec.innerHTML=CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const epay=document.getElementById('epay');
   if(epay) epay.innerHTML=CATS.pay.map(p=>`<option>${p}</option>`).join('');
   const efilt=document.getElementById('efilt');
   if(efilt) efilt.innerHTML=`<option value="">Alle Kategorien</option>`+CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const srch=(document.getElementById('esrch')?.value||'').toLowerCase();
-  const filtVal=document.getElementById('efilt')?.value||'';
+  const filtVal=window._expFilt||'';
   const rows=[...md().expenses]
     .filter(e=>(!filtVal||e.cat===filtVal)&&(!srch||e.cat.toLowerCase().includes(srch)||(e.note||'').toLowerCase().includes(srch)))
     .sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('exp-list');
   if(!rows.length){
-    el.innerHTML=`<div class="empty"><i class="ti ti-inbox"></i>Keine Ausgaben für ${lbl()}</div>`;return;
+    el.innerHTML=`<div class="ios-empty"><span class="ios-empty-icon">📭</span><div class="ios-empty-title">Keine Ausgaben</div><div class="ios-empty-sub">für ${lbl()}</div></div>`;return;
   }
   el.innerHTML=rows.map(e=>`
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:42px;height:42px;border-radius:var(--r);background:${catColor(e.cat)}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">
-          ${catEmoji(e.cat)||`<i class="ti ${CI[e.cat]||'ti-dots'}" style="color:${catColor(e.cat)};font-size:18px"></i>`}
-        </div>
+    <div class="txn-row">
+      <div class="txn-icon" style="background:${catColor(e.cat)}18">${catEmoji(e.cat)||'📦'}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <div style="font-size:15px;font-weight:700;color:var(--red)">- ${fmt(e.amount)}</div>
@@ -1534,23 +1693,22 @@ function rOv(){
   if(!years.includes(cy))years.unshift(cy);
   const thisYear=new Date().getFullYear();
   if(!years.includes(thisYear))years.unshift(thisYear);
-  document.getElementById('ytabs').innerHTML=years.map(y=>`<button class="ytab ${y===cy?'active':''}" onclick="cy=${y};rOv()">${y===thisYear?'📅 '+y:y}</button>`).join('')
-    +(cy!==thisYear?`<button class="ytab" onclick="cy=${thisYear};rOv()" style="background:var(--bbg);color:var(--blue);border-color:#bfdbfe">Aktuelles Jahr</button>`:'');
+  document.getElementById('ytabs').innerHTML=years.map(y=>`<button class="rec-pill ${y===cy?'rec-pill-blue':'rec-pill-gray'}" onclick="cy=${y};rOv()">${y===thisYear?'📅 '+y:y}</button>`).join('');
   document.getElementById('ovyrlbl').textContent=cy;
   const rows=[];let mx=1;
   for(let m=1;m<=12;m++){const t=ttl(mk(cy,m));mx=Math.max(mx,t.i,t.e);rows.push({m,t});}
   document.getElementById('ovrows').innerHTML=rows.map(({m,t})=>{
-    const iw=Math.round(t.i/mx*100),ew=Math.round(t.e/mx*100);
     const empty=t.i===0&&t.e===0,saldo=t.i-t.e;
     const isCur=cy===new Date().getFullYear()&&m===new Date().getMonth()+1;
-    return `<div class="ovrow" style="${isCur?'background:var(--bbg);border-radius:var(--rs);':''}">
-      <span style="font-weight:${isCur?700:500};color:${isCur?'var(--blue)':'var(--text)'}">${MS[m-1]}</span>
-      <div class="bwrap">${empty?'':''}
-        <div class="bbar" style="width:${iw}%;background:#16a34a88;top:0;height:50%"></div>
-        <div class="bbar" style="width:${ew}%;background:#dc262688;top:50%;height:50%"></div></div>
-      <span class="ov-inc" style="text-align:right;color:var(--muted)">${empty?'—':fmt(t.i)}</span>
-      <span style="text-align:right;color:var(--muted)">${empty?'—':fmt(t.e)}</span>
-      <span style="text-align:right;font-weight:600;color:${saldo>=0?'var(--green)':'var(--red)'}">${empty?'—':(saldo>=0?'+':'')+fmt(saldo)}</span></div>`;
+    const iw=mx>0?Math.round(t.i/mx*100):0,ew=mx>0?Math.round(t.e/mx*100):0;
+    return `<div class="ios-row" style="${isCur?'background:rgba(0,122,255,.06);':''}">
+      <div style="width:36px;font-size:14px;font-weight:${isCur?700:500};color:${isCur?'var(--ios-blue)':'var(--ios-label)'}">${MS[m-1]}</div>
+      <div style="flex:1;margin:0 10px">
+        <div style="background:var(--ios-fill);border-radius:3px;height:4px;position:relative;overflow:hidden;margin-bottom:3px"><div style="position:absolute;left:0;top:0;height:4px;width:${iw}%;background:var(--ios-green);border-radius:3px"></div></div>
+        <div style="background:var(--ios-fill);border-radius:3px;height:4px;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;height:4px;width:${ew}%;background:var(--ios-red);border-radius:3px"></div></div>
+      </div>
+      <div style="text-align:right;min-width:70px;font-size:14px;font-weight:600;color:${empty?'var(--ios-gray)':saldo>=0?'var(--ios-green)':'var(--ios-red)'}">${empty?'—':(saldo>=0?'+':'')+fmt(saldo)}</div>
+    </div>`;
   }).join('');
   if(yrC)yrC.destroy();
   yrC=new Chart(document.getElementById('yrC'),{type:'bar',data:{labels:MS,datasets:[{label:'Einnahmen',data:rows.map(r=>r.t.i),backgroundColor:'#16a34a88',borderRadius:4},{label:'Ausgaben',data:rows.map(r=>r.t.e),backgroundColor:'#dc262688',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom'}},scales:{x:{ticks:{autoSkip:false,maxRotation:0,font:{size:10}}},y:{beginAtZero:true,ticks:{callback:v=>v===0?'0':'CHF '+(v/1000).toFixed(0)+'k'}}}}});
@@ -1569,11 +1727,8 @@ function rStats(){
   const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
   const tot=Object.values(cats).reduce((a,b)=>a+b,0)||1;
   document.getElementById('topcats').innerHTML=sorted.length
-    ?sorted.map(([cat,amt])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${catEmoji(cat)||'📦'}</span>
-      <div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:3px">${cat}</div><div class="pw"><div class="pb" style="width:${Math.round(amt/tot*100)}%;background:${catColor(cat)}"></div></div></div>
-      <div style="font-size:12px;font-weight:600;color:var(--muted);min-width:32px;text-align:right">${Math.round(amt/tot*100)}%</div></div>`).join('')
-    :`<div class="empty"><i class="ti ti-inbox"></i>Keine Ausgaben für ${lbl()}</div>`;
+    ?sorted.map(([cat,amt])=>`<div class="prog-row"><div class="prog-row-header"><span class="prog-emoji">${catEmoji(cat)||'📦'}</span><span class="prog-label">${cat}</span><span class="prog-value">${Math.round(amt/tot*100)}%</span></div><div class="prog-track"><div class="prog-fill" style="width:${Math.round(amt/tot*100)}%;background:${catColor(cat)}"></div></div></div>`).join('')
+    :`<div class="ios-empty"><span class="ios-empty-icon">📊</span><div class="ios-empty-sub">Keine Ausgaben für ${lbl()}</div></div>`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1581,46 +1736,56 @@ function rStats(){
 // ═══════════════════════════════════════════════════════════
 function rRec(){
   document.getElementById('rec-month-lbl').textContent=lbl();
+  document.getElementById('rec-month-lbl') && (document.getElementById('rec-month-lbl').textContent=lbl());
   const today=new Date(),isCurMonth=today.getFullYear()===cy&&today.getMonth()+1===cm,todayDay=today.getDate();
   const activeRec=REC.filter(r=>r.active&&recDueInMonth(r,cy,cm));
   const totalMonthly=activeRec.reduce((a,r)=>a+r.amount,0);
   const booked=activeRec.filter(r=>recAlreadyBooked(r,cy,cm));
   const pending=activeRec.filter(r=>!recAlreadyBooked(r,cy,cm)&&!(r.skipped||[]).includes(ck()));
-  document.getElementById('rec-summary').innerHTML=`
-    <div class="rec-sum-item"><div class="rec-sum-val cb">${fmt(totalMonthly)}</div><div class="rec-sum-lbl">Fällig diesen Monat</div></div>
-    <div style="width:1px;background:var(--border);align-self:stretch"></div>
-    <div class="rec-sum-item"><div class="rec-sum-val" style="color:var(--green)">${booked.length}</div><div class="rec-sum-lbl">Gebucht</div></div>
-    <div class="rec-sum-item"><div class="rec-sum-val" style="color:var(--amber)">${pending.length}</div><div class="rec-sum-lbl">Ausstehend</div></div>
-    <div class="rec-sum-item"><div class="rec-sum-val" style="color:var(--muted)">${REC.filter(r=>!r.active).length}</div><div class="rec-sum-lbl">Pausiert</div></div>
-    <div style="margin-left:auto"><button class="btn btn-p btn-sm" onclick="openRecModal(null)"><i class="ti ti-plus"></i>Neu</button></div>`;
+  const rSumEl=document.getElementById('rec-summary-ios');
+  if(rSumEl) rSumEl.innerHTML=`
+    <div style="background:var(--ios-card);border-radius:14px;padding:14px 16px;flex-shrink:0;min-width:130px;text-align:center">
+      <div style="font-size:22px;font-weight:700;color:var(--ios-blue)">${fmt(totalMonthly)}</div>
+      <div style="font-size:12px;color:var(--ios-label2);margin-top:2px">Fällig</div>
+    </div>
+    <div style="background:var(--ios-card);border-radius:14px;padding:14px 16px;flex-shrink:0;min-width:90px;text-align:center">
+      <div style="font-size:22px;font-weight:700;color:var(--ios-green)">${booked.length}</div>
+      <div style="font-size:12px;color:var(--ios-label2);margin-top:2px">Gebucht</div>
+    </div>
+    <div style="background:var(--ios-card);border-radius:14px;padding:14px 16px;flex-shrink:0;min-width:90px;text-align:center">
+      <div style="font-size:22px;font-weight:700;color:var(--ios-orange)">${pending.length}</div>
+      <div style="font-size:12px;color:var(--ios-label2);margin-top:2px">Ausstehend</div>
+    </div>`;
   if(!REC.length){document.getElementById('rec-list').innerHTML='<div class="empty" style="grid-column:1/-1"><i class="ti ti-repeat"></i>Noch keine Daueraufträge</div>';return;}
   document.getElementById('rec-list').innerHTML=REC.map(r=>{
     const due=recDueInMonth(r,cy,cm),alreadyBooked=recAlreadyBooked(r,cy,cm),skipped=(r.skipped||[]).includes(ck());
-    const color=catColor(r.cat);
-    const emoji=catEmoji(r.cat)||'📦';
-    let dueBadge='';
-    if(!r.active)dueBadge=`<span class="due-pill due-done"><i class="ti ti-pause"></i>Pausiert</span>`;
-    else if(!due)dueBadge=`<span class="due-pill due-future"><i class="ti ti-clock"></i>Nicht fällig</span>`;
-    else if(skipped)dueBadge=`<span class="due-pill due-skip"><i class="ti ti-ban"></i>Übersprungen</span>`;
-    else if(alreadyBooked)dueBadge=`<span class="due-pill due-done"><i class="ti ti-check"></i>Gebucht</span>`;
-    else if(isCurMonth&&todayDay>=r.day)dueBadge=`<span class="due-pill due-today"><i class="ti ti-alert-circle"></i>Fällig – nicht gebucht</span>`;
-    else if(isCurMonth&&r.day-todayDay<=3)dueBadge=`<span class="due-pill due-soon"><i class="ti ti-clock"></i>Fällig am ${r.day}.</span>`;
-    else dueBadge=`<span class="due-pill due-ok"><i class="ti ti-calendar"></i>Am ${r.day}.</span>`;
+    const color=catColor(r.cat),emoji=catEmoji(r.cat)||'📦';
+    let badge='';
+    if(!r.active)badge=`<span class="due-badge due-done">Pausiert</span>`;
+    else if(!due)badge=`<span class="due-badge due-done">Nicht fällig</span>`;
+    else if(skipped)badge=`<span class="due-badge due-done">Übersprungen</span>`;
+    else if(alreadyBooked)badge=`<span class="due-badge due-ok">✓ Gebucht</span>`;
+    else if(isCurMonth&&todayDay>=r.day)badge=`<span class="due-badge due-late">⚠️ Nicht gebucht</span>`;
+    else if(isCurMonth&&r.day-todayDay<=3)badge=`<span class="due-badge due-warn">Am ${r.day}.</span>`;
+    else badge=`<span class="due-badge due-ok">Am ${r.day}.</span>`;
     let actions='';
     if(due&&r.active&&!alreadyBooked&&!skipped){
-      actions+=`<button class="btn btn-s btn-sm" onclick="bookNow(${r.id})"><i class="ti ti-bolt"></i>Buchen</button>`;
-      actions+=`<button class="btn btn-g btn-sm" onclick="skipRec(${r.id})"><i class="ti ti-ban"></i>Überspringen</button>`;
-    } else if(skipped){actions+=`<button class="btn btn-warn btn-sm" onclick="skipRec(${r.id})"><i class="ti ti-refresh"></i>Rückgängig</button>`;}
-    actions+=`<button onclick="openRecModal(${r.id})" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--rs);background:var(--bbg);border:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--blue)">✏️ Bearbeiten</button>`;
-    actions+=`<button onclick="deleteRec(${r.id})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px">❌</button>`;
-    return `<div class="rec-card ${r.active?'':'inactive'}">
-      <div class="rec-icon" style="background:${color}18;font-size:20px">${emoji}</div>
-      <div class="rec-body">
-        <div class="rec-name">${r.name}</div><div class="rec-amount" style="color:${color}">${fmt(r.amount)}</div>
-        <div class="rec-meta"><span><i class="ti ti-calendar-event"></i>am ${r.day}.</span><span class="interval-badge"><i class="ti ti-repeat"></i>${INTERVAL_LABEL[r.interval]||r.interval}</span>${r.note?`<span>${r.note}</span>`:''}</div>
-        <div style="margin-top:6px">${dueBadge}</div><div class="rec-actions">${actions}</div>
+      actions+=`<button class="rec-pill rec-pill-green" onclick="bookNow(${r.id})">⚡ Buchen</button>`;
+      actions+=`<button class="rec-pill rec-pill-gray" onclick="skipRec(${r.id})">⏭ Skip</button>`;
+    } else if(skipped){actions+=`<button class="rec-pill rec-pill-orange" onclick="skipRec(${r.id})">↩ Rückgängig</button>`;}
+    actions+=`<button class="rec-pill rec-pill-blue" onclick="openRecModal(${r.id})">✏️</button>`;
+    actions+=`<button class="rec-pill rec-pill-red" onclick="deleteRec(${r.id})">❌</button>`;
+    return `<div class="rec-card" style="opacity:${r.active?1:.5};margin-bottom:2px">
+      <div class="rec-card-icon" style="background:${color}15">${emoji}</div>
+      <div class="rec-card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+          <div><div class="rec-card-name">${r.name}</div><div class="rec-card-amount" style="color:${color}">-${fmt(r.amount)}</div>
+          <div class="rec-card-meta">${INTERVAL_LABEL[r.interval]} · am ${r.day}.${r.note?' · '+r.note:''}</div></div>
+          <label class="ios-switch"><input type="checkbox" ${r.active?'checked':''} onchange="toggleRec(${r.id},this.checked)"><div class="ios-switch-track"></div><div class="ios-switch-thumb"></div></label>
+        </div>
+        <div style="margin-top:8px">${badge}</div>
+        <div class="rec-card-actions">${actions}</div>
       </div>
-      <div class="rec-toggle"><label class="sw"><input type="checkbox" ${r.active?'checked':''} onchange="toggleRec(${r.id},this.checked)"><span class="sl"></span></label></div>
     </div>`;
   }).join('');
 }
@@ -1789,10 +1954,10 @@ function renderCatList(elId,type){
   el.innerHTML=items.map((c,i)=>{
     const name=typeof c==='object'?c.n:c;
     const emoji=typeof c==='object'?c.e:'';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--border)">
-      <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${emoji||'📦'}</span>
-      <span style="flex:1;font-size:13px;font-weight:500">${name}</span>
-      <button onclick="deleteCat('${type}',${i})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">❌</button>
+    return `<div class="ios-row">
+      <span style="font-size:20px;flex-shrink:0">${emoji||'📦'}</span>
+      <div class="ios-row-label">${name}</div>
+      <button onclick="deleteCat('${type}',${i})" style="color:var(--ios-red);background:none;border:none;font-size:20px;cursor:pointer">❌</button>
     </div>`;
   }).join('');
 }
@@ -1822,10 +1987,10 @@ function renderPersonList(){
   const el=document.getElementById('personList');if(!el)return;
   if(!PERSONS.length){el.innerHTML=`<div style="font-size:12px;color:var(--muted);font-style:italic;padding:8px 0">Noch keine Personen — füge z.B. "Ermir" und "Larissa" hinzu.</div>`;return;}
   el.innerHTML=PERSONS.map((p,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--border)">
-      <div style="width:34px;height:34px;border-radius:50%;background:${AVATAR_COLORS[i%AVATAR_COLORS.length]}22;color:${AVATAR_COLORS[i%AVATAR_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${p[0].toUpperCase()}</div>
-      <span style="flex:1;font-size:13px;font-weight:500">${p}</span>
-      <button onclick="deletePerson(${i})" style="width:34px;height:34px;border-radius:var(--rs);background:var(--rbg);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">❌</button>
+    <div class="ios-row">
+      <div class="person-avatar" style="background:${AVATAR_COLORS[i%AVATAR_COLORS.length]}22;color:${AVATAR_COLORS[i%AVATAR_COLORS.length]};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${p[0].toUpperCase()}</div>
+      <div class="ios-row-label">${p}</div>
+      <button onclick="deletePerson(${i})" style="color:var(--ios-red);background:none;border:none;font-size:20px;cursor:pointer">❌</button>
     </div>`).join('');
 }
 function addPerson(){
@@ -1849,17 +2014,12 @@ function renderPersonSplit(restBudget){
   card.style.display='block';
   const perPerson=restBudget/PERSONS.length;
   const isPos=restBudget>=0;
-  list.innerHTML=`
-    <div style="background:${isPos?'var(--gbg)':'var(--rbg)'};border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:12px;color:var(--muted)">Restbudget aufgeteilt auf ${PERSONS.length} ${PERSONS.length===1?'Person':'Personen'}</span>
-      <span style="font-size:14px;font-weight:700;color:${isPos?'var(--green)':'var(--red)'}">${fmt(Math.abs(perPerson))} / Person</span>
-    </div>
-    ${PERSONS.map((p,i)=>`
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="width:36px;height:36px;border-radius:50%;background:${AVATAR_COLORS[i%AVATAR_COLORS.length]}22;color:${AVATAR_COLORS[i%AVATAR_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${p[0].toUpperCase()}</div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600">${p}</div><div style="font-size:11px;color:var(--muted)">Anteil am Restbudget</div></div>
-        <div style="font-size:16px;font-weight:700;color:${isPos?'var(--green)':'var(--red)'}">${isPos?'+':''}${fmt(perPerson)}</div>
-      </div>`).join('')}`;
+  list.innerHTML=PERSONS.map((p,i)=>`
+    <div class="person-row">
+      <div class="person-avatar" style="background:${AVATAR_COLORS[i%AVATAR_COLORS.length]}22;color:${AVATAR_COLORS[i%AVATAR_COLORS.length]}">${p[0].toUpperCase()}</div>
+      <div class="person-name">${p}</div>
+      <div class="person-amount" style="color:${isPos?'var(--ios-green)':'var(--ios-red)'}">${isPos?'+':''}${fmt(perPerson)}</div>
+    </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1901,24 +2061,20 @@ function renderRecIncList(){
   if(!REC_INC.length){if(card)card.style.display='none';return;}
   if(card)card.style.display='block';
   el.innerHTML=REC_INC.map(r=>{
-    const due=recIncDueInMonth(r,cy,cm);
-    const booked=recIncAlreadyBooked(r,cy,cm);
-    const color=catColor(r.cat);const emoji=catEmoji(r.cat)||'💰';
-    let badge=booked?'<span class="due-pill due-done">✓ Gebucht</span>':due?'<span class="due-pill due-soon">⏰ Fällig</span>':'<span class="due-pill due-future">Nicht fällig</span>';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div style="width:36px;height:36px;border-radius:var(--rs);background:${color}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${emoji}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600">${r.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${INTERVAL_LABEL[r.interval]} · am ${r.day}.</div>
+    const due=recIncDueInMonth(r,cy,cm),booked=recIncAlreadyBooked(r,cy,cm);
+    const color=catColor(r.cat),emoji=catEmoji(r.cat)||'💰';
+    let badge=booked?'<span class="due-badge due-ok">✓ Gebucht</span>':due?'<span class="due-badge due-warn">⏰ Fällig</span>':'<span class="due-badge due-done">Nicht fällig</span>';
+    return `<div class="txn-row">
+      <div class="txn-icon" style="background:${color}18">${emoji}</div>
+      <div class="txn-body">
+        <div class="txn-title">+ ${fmt(r.amount)}</div>
+        <div class="txn-sub">${r.name} · ${INTERVAL_LABEL[r.interval]} · am ${r.day}.</div>
         <div style="margin-top:4px">${badge}</div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:15px;font-weight:700;color:var(--green)">+${fmt(r.amount)}</div>
-        <div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end">
-          ${due&&!booked?`<button onclick="bookRecInc(${r.id})" style="padding:4px 8px;border-radius:var(--rs);background:var(--gbg);border:none;color:var(--green);cursor:pointer;font-size:11px;font-weight:600">Buchen</button>`:''}
-          <button onclick="openRecIncModal(${r.id})" style="width:28px;height:28px;border-radius:var(--rs);background:var(--bbg);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✏️</button>
-          <button onclick="deleteRecInc(${r.id})" style="width:28px;height:28px;border-radius:var(--rs);background:var(--rbg);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">❌</button>
-        </div>
+      <div class="txn-actions" style="flex-direction:column;gap:2px;align-items:flex-end">
+        ${due&&!booked?`<button class="rec-pill rec-pill-green" style="font-size:11px;padding:4px 8px" onclick="bookRecInc(${r.id})">⚡</button>`:''}
+        <button class="txn-btn txn-edit-btn" onclick="openRecIncModal(${r.id})">✏️</button>
+        <button class="txn-btn txn-del-btn" onclick="deleteRecInc(${r.id})">❌</button>
       </div>
     </div>`;
   }).join('');
@@ -1982,7 +2138,7 @@ function exportCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Budget_${ck()}.csv`;a.click();
   toast(`CSV für ${lbl()} heruntergeladen.`);
 }
-function toast(msg){const t=document.getElementById('toastEl');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3400);}
+function toast(msg){const t=document.getElementById('toastEl');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
 // ═══════════════════════════════════════════════════════════
 // INIT — check session on load

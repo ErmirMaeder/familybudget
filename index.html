@@ -1349,13 +1349,11 @@ function save(isRec=false){
 
 function showSyncPill(state){
   const dot=document.getElementById('syncDot');
-  if(dot){dot.style.display='inline-block';dot.className='sync-dot sync-'+state;
-    if(state==='saved')setTimeout(()=>{dot.style.display='none'},3000);}
-  const p=document.getElementById('syncPill');
-  p.style.display='inline-flex';
-  if(state==='saving'){p.className='sync-pill saving';p.innerHTML='<i class="ti ti-cloud spinning"></i>';}
-  else if(state==='saved'){p.className='sync-pill saved';p.innerHTML='<i class="ti ti-cloud-check"></i>';setTimeout(()=>{p.style.display='none';},3000);}
-  else if(state==='error'){p.className='sync-pill error';p.innerHTML='<i class="ti ti-cloud-off"></i> Fehler';}
+  if(dot){
+    dot.style.display='inline-block';
+    dot.className='sync-dot sync-'+state;
+    if(state==='saved')setTimeout(()=>{dot.style.display='none'},3000);
+  }
 }
 
 async function syncNow(){

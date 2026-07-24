@@ -9,6 +9,10 @@
 <meta name="theme-color" content="#1a2744">
 <title>FamilyBudget</title>
 <link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+<meta name="apple-touch-fullscreen" content="yes">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1444,13 +1448,16 @@ const md=()=>D[ck()]||{income:[],expenses:[]};
 const lbl=()=>MN[cm-1]+' '+cy;
 const fmt=v=>'CHF '+Number(v).toLocaleString('de-CH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fd=d=>{if(!d)return'';const p=d.split('-');return p[2]+'.'+p[1]+'.'+p[0];};
+// Normalize category — always returns string name
+function catN(c){ return typeof c==='object'?c.n:c; }
 // Get emoji for a category name
 function catEmoji(name){
+  const n=catN(name);
   const all=[...CATS.exp,...CATS.inc];
-  const found=all.find(c=>typeof c==='object'&&c.n===name);
-  return found?found.e:(CC[name]?'':'📦');
+  const found=all.find(c=>catN(c)===n);
+  return found&&typeof found==='object'?found.e:'';
 }
-function catColor(name){return CC[name]||'#6b7280';}
+function catColor(name){return CC[catN(name)]||'#6b7280';}
 function ensure(k){if(!D[k])D[k]={income:[],expenses:[]};}
 function ttl(k){const d=D[k]||{income:[],expenses:[]};const i=d.income.reduce((a,x)=>a+x.amount,0);const e=d.expenses.reduce((a,x)=>a+x.amount,0);return{i,e,r:i-e,s:Math.max(0,i-e)};}
 
@@ -1597,12 +1604,12 @@ function rDash(){
   const recent=[...md().expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
   document.getElementById('recent').innerHTML=recent.length
     ?recent.map(e=>`<div class="txn-row">
-      <div class="txn-icon" style="background:${catColor(e.cat)}18">${catEmoji(e.cat)||'📦'}</div>
-      <div class="txn-body"><div class="txn-title">${e.cat}</div><div class="txn-sub">${fd(e.date)}${e.note?' · '+e.note:''}</div></div>
+      <div class="txn-icon" style="background:${catColor(catN(e.cat))}18">${catEmoji(catN(e.cat))||'📦'}</div>
+      <div class="txn-body"><div class="txn-title">${catN(e.cat)}</div><div class="txn-sub">${fd(e.date)}${e.note?' · '+e.note:''}</div></div>
       <div class="txn-amount mc-red">-${fmt(e.amount)}</div>
     </div>`).join('')
     :`<div class="ios-empty"><span class="ios-empty-icon">📭</span><div class="ios-empty-title">Keine Ausgaben</div><div class="ios-empty-sub">für ${lbl()}</div></div>`;
-  const cats={};md().expenses.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
+  const cats={};md().expenses.forEach(e=>{const cn=catN(e.cat);cats[cn]=(cats[cn]||0)+e.amount;});
   document.getElementById('catprog').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([cat,amt])=>{
     const p2=t.e>0?Math.round(amt/t.e*100):0;
     return `<div class="prog-row"><div class="prog-row-header"><span class="prog-emoji">${catEmoji(cat)||'📦'}</span><span class="prog-label">${cat}</span><span class="prog-value">${fmt(amt)}</span></div><div class="prog-track"><div class="prog-fill" style="width:${p2}%;background:${catColor(cat)}"></div></div></div>`;
@@ -1664,7 +1671,7 @@ function rExp(){
   const srch=(document.getElementById('esrch')?.value||'').toLowerCase();
   const filtVal=window._expFilt||'';
   const rows=[...md().expenses]
-    .filter(e=>(!filtVal||e.cat===filtVal)&&(!srch||e.cat.toLowerCase().includes(srch)||(e.note||'').toLowerCase().includes(srch)))
+    .filter(e=>(!filtVal||catN(e.cat)===filtVal)&&(!srch||catN(e.cat).toLowerCase().includes(srch)||(e.note||'').toLowerCase().includes(srch)))
     .sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('exp-list');
   if(!rows.length){
@@ -1672,7 +1679,7 @@ function rExp(){
   }
   el.innerHTML=rows.map(e=>`
     <div class="txn-row">
-      <div class="txn-icon" style="background:${catColor(e.cat)}18">${catEmoji(e.cat)||'📦'}</div>
+      <div class="txn-icon" style="background:${catColor(catN(e.cat))}18">${catEmoji(catN(e.cat))||'📦'}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <div style="font-size:15px;font-weight:700;color:var(--red)">- ${fmt(e.amount)}</div>
@@ -1727,7 +1734,7 @@ function rStats(){
   for(let m=1;m<=12;m++){const t=ttl(mk(cy,m));if(t.i>0||t.e>0){sv.push(Math.max(0,t.s));lb.push(MS[m-1]);}}
   if(sC)sC.destroy();
   sC=new Chart(document.getElementById('savC'),{type:'line',data:{labels:lb,datasets:[{label:'Gespart',data:sv,borderColor:'#16a34a',backgroundColor:'#16a34a22',fill:true,tension:.4,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'CHF '+v}}}}});
-  const cats={};md().expenses.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
+  const cats={};md().expenses.forEach(e=>{const cn=catN(e.cat);cats[cn]=(cats[cn]||0)+e.amount;});
   const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
   const tot=Object.values(cats).reduce((a,b)=>a+b,0)||1;
   document.getElementById('topcats').innerHTML=sorted.length
@@ -1763,7 +1770,7 @@ function rRec(){
   if(!REC.length){document.getElementById('rec-list').innerHTML='<div class="empty" style="grid-column:1/-1"><i class="ti ti-repeat"></i>Noch keine Daueraufträge</div>';return;}
   document.getElementById('rec-list').innerHTML=REC.map(r=>{
     const due=recDueInMonth(r,cy,cm),alreadyBooked=recAlreadyBooked(r,cy,cm),skipped=(r.skipped||[]).includes(ck());
-    const color=catColor(r.cat),emoji=catEmoji(r.cat)||'📦';
+    const color=catColor(catN(r.cat)),emoji=catEmoji(catN(r.cat))||'📦';
     let badge='';
     if(!r.active)badge=`<span class="due-badge due-done">Pausiert</span>`;
     else if(!due)badge=`<span class="due-badge due-done">Nicht fällig</span>`;
@@ -1810,7 +1817,7 @@ function openRecModal(id){
     const r=REC.find(x=>x.id===id);if(!r)return;
     document.getElementById('recModalTitle').textContent='Dauerauftrag bearbeiten';
     document.getElementById('r-name').value=r.name;document.getElementById('r-amount').value=r.amount;
-    document.getElementById('r-cat').value=r.cat;document.getElementById('r-day').value=r.day;
+    document.getElementById('r-cat').value=catN(r.cat);document.getElementById('r-day').value=r.day;
     document.getElementById('r-pay').value=r.pay;document.getElementById('r-interval').value=r.interval;
     document.getElementById('r-from').value=r.from;document.getElementById('r-until').value=r.until||'';
     document.getElementById('r-note').value=r.note||'';
@@ -1883,7 +1890,7 @@ function openEditInc(id){
   document.getElementById('ei-amount').value=e.amount;
   document.getElementById('ei-note').value=e.note||'';
   const sel=document.getElementById('ei-cat');
-  sel.innerHTML=CATS.inc.map(c=>`<option ${(typeof c==='object'?c.n:c)===e.cat?'selected':''}>${c}</option>`).join('');
+  sel.innerHTML=CATS.inc.map(c=>`<option value="${catN(c)}" ${catN(c)===catN(e.cat)?'selected':''}>${catN(c)}</option>`).join('');
   document.getElementById('editIncOverlay').style.display='flex';
 }
 function closeEditInc(){document.getElementById('editIncOverlay').style.display='none';}
@@ -1910,7 +1917,7 @@ function openEditExp(id){
   document.getElementById('ee-amount').value=e.amount;
   document.getElementById('ee-note').value=e.note||'';
   const csel=document.getElementById('ee-cat');
-  csel.innerHTML=CATS.exp.map(c=>`<option ${(typeof c==='object'?c.n:c)===e.cat?'selected':''}>${c}</option>`).join('');
+  csel.innerHTML=CATS.exp.map(c=>`<option value="${catN(c)}" ${catN(c)===catN(e.cat)?'selected':''}>${catN(c)}</option>`).join('');
   const psel=document.getElementById('ee-pay');
   psel.innerHTML=CATS.pay.map(p=>`<option ${p===e.pay?'selected':''}>${p}</option>`).join('');
   document.getElementById('editExpOverlay').style.display='flex';
@@ -2066,7 +2073,7 @@ function renderRecIncList(){
   if(card)card.style.display='block';
   el.innerHTML=REC_INC.map(r=>{
     const due=recIncDueInMonth(r,cy,cm),booked=recIncAlreadyBooked(r,cy,cm);
-    const color=catColor(r.cat),emoji=catEmoji(r.cat)||'💰';
+    const color=catColor(catN(r.cat)),emoji=catEmoji(catN(r.cat))||'💰';
     let badge=booked?'<span class="due-badge due-ok">✓ Gebucht</span>':due?'<span class="due-badge due-warn">⏰ Fällig</span>':'<span class="due-badge due-done">Nicht fällig</span>';
     return `<div class="txn-row">
       <div class="txn-icon" style="background:${color}18">${emoji}</div>
@@ -2100,7 +2107,7 @@ function openRecIncModal(id){
     const r=REC_INC.find(x=>x.id===id);if(!r)return;
     document.getElementById('recIncModalTitle').textContent='Einnahme bearbeiten';
     document.getElementById('ri-name').value=r.name;document.getElementById('ri-amount').value=r.amount;
-    document.getElementById('ri-cat').value=r.cat;document.getElementById('ri-day').value=r.day;
+    document.getElementById('ri-cat').value=catN(r.cat);document.getElementById('ri-day').value=r.day;
     document.getElementById('ri-interval').value=r.interval;document.getElementById('ri-from').value=r.from;
     document.getElementById('ri-until').value=r.until||'';document.getElementById('ri-note').value=r.note||'';
   } else {
@@ -2136,7 +2143,7 @@ function deleteRecInc(id){
 
 function exportCSV(){
   const m=md();
-  const rows=[['Datum','Kategorie','Betrag','Notiz','Typ','Dauerauftrag'],...m.income.map(e=>[e.date,e.cat,e.amount,e.note,'Einnahme','']),...m.expenses.map(e=>[e.date,e.cat,e.amount,e.recName||e.note,'Ausgabe',e.recName?'Ja':''])];
+  const rows=[['Datum','Kategorie','Betrag','Notiz','Typ','Dauerauftrag'],...m.income.map(e=>[e.date,catN(e.cat),e.amount,e.note,'Einnahme','']),...m.expenses.map(e=>[e.date,catN(e.cat),e.amount,e.recName||e.note,'Ausgabe',e.recName?'Ja':''])];
   const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(';')).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Budget_${ck()}.csv`;a.click();

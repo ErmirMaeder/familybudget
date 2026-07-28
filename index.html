@@ -1434,16 +1434,7 @@ async function syncNow(){
 // ═══════════════════════════════════════════════════════════
 function showApp(){
   const app=document.getElementById('app');
-  // Avatar setup (needed before showing month select too)
-  const email=currentUser.email||'';
-  const initial=(email[0]||'?').toUpperCase();
-  const colorIdx=email.charCodeAt(0)%AVATAR_COLORS.length;
-  const color=AVATAR_COLORS[colorIdx];
-  const btn=document.getElementById('userBtn');
-  const nav=document.getElementById('userAvatarNav');
-  btn.textContent=initial;btn.style.background=color+'33';btn.style.color=color;
-  if(nav){nav.textContent=initial;nav.style.background=color+'33';nav.style.color=color;}
-  document.getElementById('brandFamily').textContent=currentFamily?.name||'FamilyBudget';
+  // brandFamily wird beim Dashboard-Rendering aktualisiert (siehe rDash)
   // Show month selection screen instead of jumping straight to dashboard
   showMonthSelect();
   startInactivityTimer();

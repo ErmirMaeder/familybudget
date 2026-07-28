@@ -467,7 +467,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button type="button" class="login-btn" id="btn-login" onclick="doLogin()">Anmelden</button>
     <div id="login-err" class="login-err"></div>
     <button type="button" class="login-link" onclick="switchTab('reset')">Passwort vergessen?</button>
-    <button type="button" class="login-link" onclick="enterDemoMode()" style="color:rgba(255,255,255,.35);margin-top:4px">🎨 Design testen ohne Login</button>
   </div>
   <!-- REGISTER -->
   <div id="form-register" style="display:none;width:100%;max-width:340px">
@@ -1209,61 +1208,7 @@ let D={}, REC=[], REC_INC=[], PERSONS=[];
 let cy=new Date().getFullYear(), cm=new Date().getMonth()+1, py=cy, ap='dash';
 let pC,bC,sC,yrC;
 let currentUser=null, currentProfile=null, currentFamily=null;
-let demoMode=false;
 let saveTimer=null;
-
-// ═══════════════════════════════════════════════════════════
-// DEMO-MODUS — App testen ohne Login/Supabase
-// ═══════════════════════════════════════════════════════════
-function enterDemoMode(){
-  demoMode=true;
-  currentUser={id:'demo-user',email:'demo@familybudget.ch'};
-  currentProfile={id:'demo-user',username:'demo',role:'admin'};
-  currentFamily={id:'demo-family',name:'Demo-Familie',invite_code:'DEMO01'};
-
-  // Beispiel-Kategorien (Standard + Emojis, bereits eingebaut)
-  CATS={exp:[...DEF_EXP_CATS],inc:[...DEF_INC_CATS],pay:[...DEF_PAY]};
-
-  // Beispiel-Personen
-  PERSONS=['Ermir','Larissa'];
-
-  // Beispiel-Daueraufträge
-  REC=[
-    {id:1,name:'Miete',amount:1850,cat:'Miete',day:1,pay:'Banküberweisung',interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]},
-    {id:2,name:'Krankenkasse',amount:380,cat:'Versicherungen',day:1,pay:'Banküberweisung',interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]},
-    {id:3,name:'Netflix',amount:17,cat:'Streaming',day:5,pay:'Kreditkarte',interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]}
-  ];
-  REC_INC=[
-    {id:1,name:'Lohn Ermir',amount:6800,cat:'Lohn',day:1,interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]},
-    {id:2,name:'Lohn Larissa',amount:2800,cat:'Lohn',day:1,interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]}
-  ];
-
-  // Beispiel-Daten für den aktuellen Monat
-  const now=new Date();
-  const k=mk(now.getFullYear(),now.getMonth()+1);
-  D={};
-  D[k]={
-    income:[
-      {id:101,date:`${k}-01`,cat:'Lohn',amount:6800,note:'Lohn Ermir'},
-      {id:102,date:`${k}-01`,cat:'Lohn',amount:2800,note:'Lohn Larissa'}
-    ],
-    expenses:[
-      {id:201,date:`${k}-01`,cat:'Miete',amount:1850,pay:'Banküberweisung',note:''},
-      {id:202,date:`${k}-03`,cat:'Lebensmittel',amount:420,pay:'Kreditkarte',note:'Migros'},
-      {id:203,date:`${k}-05`,cat:'Streaming',amount:17,pay:'Kreditkarte',note:'Netflix'},
-      {id:204,date:`${k}-10`,cat:'Freizeit',amount:85,pay:'Bar',note:'Kino'},
-      {id:205,date:`${k}-15`,cat:'Auto',amount:220,pay:'Kreditkarte',note:'Tanken'}
-    ]
-  };
-
-  const app=document.getElementById('app');
-  app.style.display='none';app.classList.remove('visible');
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('familyScreen').style.display='none';
-  hideSplash();
-  toast('🎨 Demo-Modus aktiv — Änderungen werden nicht gespeichert.');
-  showApp();
-}
 
 
 // ═══════════════════════════════════════════════════════════
@@ -1319,8 +1264,7 @@ async function onLogin(user){
 async function doLogout(){
   if(typeof closeUserMenu==="function")closeUserMenu();
   stopInactivityTimer();
-  if(!demoMode) await sb.auth.signOut();
-  demoMode=false;
+  await sb.auth.signOut();
   currentUser=null;currentProfile=null;currentFamily=null;D={};REC=[];REC_INC=[];PERSONS=[];
   document.getElementById('app').style.display='none';
   document.getElementById('app').classList.remove('visible');
@@ -1352,7 +1296,6 @@ async function doReset(){
 
 async function switchFamily(){
   if(typeof closeUserMenu==="function")closeUserMenu();
-  if(demoMode){toast('Im Demo-Modus nicht verfügbar. Bitte melde dich ab und logge dich richtig ein.');return;}
   if(!(await showConfirm('Familie wechseln? Du verlässt die aktuelle Familie und kannst einer neuen beitreten oder eine neue erstellen.','Wechseln'))) return;
   // Remove family_id from profile
   await sb.from('profiles').update({family_id:null}).eq('id',currentUser.id);
@@ -1453,7 +1396,6 @@ async function loadAllData(){
 
 async function saveMonthData(key){
   if(!currentFamily) return;
-  if(demoMode){showSyncPill('saved');return;}
   showSyncPill('saving');
   const {error}=await sb.from('budget_data').upsert({family_id:currentFamily.id,month_key:key,data:D[key]||{income:[],expenses:[]},updated_at:new Date().toISOString()},{onConflict:'family_id,month_key'});
   if(error){showSyncPill('error');return;}
@@ -1462,7 +1404,6 @@ async function saveMonthData(key){
 
 async function saveCats(){
   if(!currentFamily) return;
-  if(demoMode){showSyncPill('saved');return;}
   showSyncPill('saving');
   const {error}=await sb.from('budget_data').upsert({family_id:currentFamily.id,month_key:'__settings__',data:{cats:CATS},updated_at:new Date().toISOString()},{onConflict:'family_id,month_key'});
   if(error){showSyncPill('error');return;}
@@ -1471,7 +1412,6 @@ async function saveCats(){
 
 async function saveRecurring(){
   if(!currentFamily) return;
-  if(demoMode){showSyncPill('saved');return;}
   showSyncPill('saving');
   const {error}=await sb.from('recurring').upsert({family_id:currentFamily.id,data:{rec:REC,recInc:REC_INC,persons:PERSONS},updated_at:new Date().toISOString()},{onConflict:'family_id'});
   if(error){showSyncPill('error');return;}
@@ -1503,7 +1443,6 @@ function showSyncPill(state){
 
 async function syncNow(){
   if(typeof closeUserMenu==="function")closeUserMenu();
-  if(demoMode){toast('Demo-Modus: keine echte Synchronisierung.');return;}
   showSyncPill('saving');
   await loadAllData();
   showSyncPill('saved');
@@ -1647,14 +1586,6 @@ async function populateAccountSettings(){
   const famEl=document.getElementById('settingsFamilyName');if(famEl)famEl.textContent=currentFamily?.name||'';
   const codeEl=document.getElementById('settingsInviteCode');if(codeEl)codeEl.textContent=currentFamily?.invite_code||'——';
   const listEl=document.getElementById('settingsMembersList');
-  if(demoMode){
-    if(listEl) listEl.innerHTML=`<div class="member-row">
-      <div style="width:38px;height:38px;border-radius:50%;background:${color}22;color:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${initial}</div>
-      <div style="flex:1"><div style="font-size:16px;font-weight:500;color:var(--ios-label)">demo (Testkonto)</div><div style="font-size:13px;color:var(--ios-label2)">Administrator</div></div>
-      <span class="ios-badge ios-badge-blue">Du</span>
-    </div>`;
-    return;
-  }
   // Load members
   const {data:members}=await sb.from('profiles').select('*').eq('family_id',currentFamily.id);
   if(listEl) listEl.innerHTML=(members||[]).map(m=>{

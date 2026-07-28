@@ -554,6 +554,31 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
   </div>
 </div>
 
+<!-- ══════════════════ MONAT-AUSWAHL (Startseite nach Login) ══════════════════ -->
+<div id="monthSelectScreen" style="display:none;position:fixed;inset:0;background:var(--ios-bg);z-index:800;flex-direction:column;padding-top:var(--safe-top)">
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
+    <div style="max-width:480px;margin:0 auto;padding:24px 20px 40px;text-align:center">
+      <div style="width:64px;height:64px;background:#1a2744;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <svg width="34" height="34" viewBox="0 0 200 200"><polygon points="100,30 28,90 172,90" fill="#3b82f6"/><rect x="46" y="90" width="108" height="74" fill="#2563eb"/><rect x="76" y="112" width="48" height="52" fill="#1d3f8e"/></svg>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:var(--ios-label);margin-bottom:4px">Willkommen zurück</div>
+      <div style="font-size:15px;color:var(--ios-label2);margin-bottom:28px" id="msFamilyName">Familie</div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--ios-label2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;text-align:left">Welchen Monat möchtest du öffnen?</div>
+
+      <div class="year-nav" style="padding:0 0 8px">
+        <button class="year-nav-btn" onclick="msPy--;renderMonthSelect()">‹</button>
+        <div class="year-label" id="msPylbl">2026</div>
+        <button class="year-nav-btn" onclick="msPy++;renderMonthSelect()">›</button>
+      </div>
+      <div class="month-grid" id="msMgrid" style="padding:0 0 20px"></div>
+
+      <button class="login-btn" style="background:var(--ios-blue);max-width:none" onclick="confirmMonthSelect()">Öffnen →</button>
+      <button class="login-link" style="color:var(--ios-label2)" onclick="confirmMonthSelect(true)">Zum aktuellen Monat</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════ MAIN APP ══════════════════ -->
 <div id="app">
 
@@ -887,6 +912,24 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
             </div>
           </div>
         </div>
+        <!-- Sicherheit -->
+        <div class="ios-section">
+          <div class="ios-section-header">🔒 Sicherheit</div>
+          <div class="ios-list">
+            <div class="ios-row">
+              <div class="ios-row-label">Automatisch abmelden nach</div>
+              <select id="autoLogoutSelect" class="ios-form-select" style="flex:0" onchange="setAutoLogoutTime(this.value)">
+                <option value="0">Nie</option>
+                <option value="5">5 Minuten</option>
+                <option value="15">15 Minuten</option>
+                <option value="30">30 Minuten</option>
+                <option value="60">1 Stunde</option>
+                <option value="240">4 Stunden</option>
+              </select>
+            </div>
+          </div>
+          <div class="ios-section-footer">Nach Inaktivität wirst du automatisch ausgeloggt. Bei „Nie" bleibst du dauerhaft angemeldet.</div>
+        </div>
         <div style="height:20px"></div>
       </div>
 
@@ -1186,10 +1229,12 @@ async function onLogin(user){
 
 async function doLogout(){
   closeUserMenu();
+  stopInactivityTimer();
   await sb.auth.signOut();
   currentUser=null;currentProfile=null;currentFamily=null;D={};REC=[];
   document.getElementById('app').style.display='none';
   document.getElementById('app').classList.remove('visible');
+  document.getElementById('monthSelectScreen').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
 }
 
@@ -1370,8 +1415,7 @@ async function syncNow(){
 // ═══════════════════════════════════════════════════════════
 function showApp(){
   const app=document.getElementById('app');
-  app.style.display='flex';app.classList.add('visible');
-  // Avatar
+  // Avatar setup (needed before showing month select too)
   const email=currentUser.email||'';
   const initial=(email[0]||'?').toUpperCase();
   const colorIdx=email.charCodeAt(0)%AVATAR_COLORS.length;
@@ -1381,10 +1425,87 @@ function showApp(){
   btn.textContent=initial;btn.style.background=color+'33';btn.style.color=color;
   if(nav){nav.textContent=initial;nav.style.background=color+'33';nav.style.color=color;}
   document.getElementById('brandFamily').textContent=currentFamily?.name||'FamilyBudget';
+  // Show month selection screen instead of jumping straight to dashboard
+  showMonthSelect();
+  startInactivityTimer();
+}
+
+function enterApp(){
+  const app=document.getElementById('app');
+  app.style.display='flex';app.classList.add('visible');
+  document.getElementById('monthSelectScreen').style.display='none';
   updMon();rDash();
 }
 
+// ═══════════════════════════════════════════════════════════
+// MONAT-AUSWAHL STARTSEITE
+// ═══════════════════════════════════════════════════════════
+let msPy=cy, msSelM=cm, msSelY=cy;
+function showMonthSelect(){
+  document.getElementById('msFamilyName').textContent=currentFamily?.name||'';
+  msPy=cy; msSelM=cm; msSelY=cy;
+  renderMonthSelect();
+  document.getElementById('monthSelectScreen').style.display='flex';
+}
+function renderMonthSelect(){
+  document.getElementById('msPylbl').textContent=msPy;
+  document.getElementById('msMgrid').innerHTML=MN.map((n,i)=>{
+    const m=i+1,k=mk(msPy,m);
+    const has=D[k]&&(D[k].income.length>0||D[k].expenses.length>0);
+    const sel=msPy===msSelY&&m===msSelM;
+    return `<button class="month-cell ${sel?'sel':has?'has':''}" onclick="msSelY=${msPy};msSelM=${m};renderMonthSelect()">${MS[i]}</button>`;
+  }).join('');
+}
+function confirmMonthSelect(useToday){
+  if(useToday){
+    const now=new Date(); cy=now.getFullYear(); cm=now.getMonth()+1;
+  } else {
+    cy=msSelY; cm=msSelM;
+  }
+  enterApp();
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTO-LOGOUT BEI INAKTIVITÄT
+// ═══════════════════════════════════════════════════════════
+let inactivityTimer=null;
+let autoLogoutMinutes=0; // 0 = deaktiviert
+
+function getAutoLogoutTime(){
+  try{ return parseInt(localStorage.getItem('fb_auto_logout_min')||'0'); }catch{ return 0; }
+}
+function setAutoLogoutTime(minutes){
+  autoLogoutMinutes=parseInt(minutes)||0;
+  try{ localStorage.setItem('fb_auto_logout_min', String(autoLogoutMinutes)); }catch{}
+  resetInactivityTimer();
+  toast(autoLogoutMinutes===0?'Automatische Abmeldung deaktiviert':`Automatische Abmeldung nach ${minutes} Min. aktiviert`);
+}
+function startInactivityTimer(){
+  autoLogoutMinutes=getAutoLogoutTime();
+  const sel=document.getElementById('autoLogoutSelect');
+  if(sel) sel.value=String(autoLogoutMinutes);
+  resetInactivityTimer();
+  ['click','touchstart','keydown','mousemove','scroll'].forEach(evt=>{
+    document.addEventListener(evt, resetInactivityTimer, {passive:true});
+  });
+}
+function resetInactivityTimer(){
+  clearTimeout(inactivityTimer);
+  if(!autoLogoutMinutes || autoLogoutMinutes<=0) return;
+  inactivityTimer=setTimeout(()=>{
+    if(currentUser){
+      toast('Automatisch abgemeldet wegen Inaktivität');
+      setTimeout(()=>doLogout(),1200);
+    }
+  }, autoLogoutMinutes*60*1000);
+}
+function stopInactivityTimer(){
+  clearTimeout(inactivityTimer);
+}
+
 function hideSplash(){document.getElementById('splash').style.display='none';}
+
+
 
 // ═══════════════════════════════════════════════════════════
 // HAMBURGER MENU (mobile)
@@ -1945,6 +2066,8 @@ function rSettings(){
   renderCatList('payList','pay');
   renderEmojiPicker('emojiPickerExp','exp');
   renderEmojiPicker('emojiPickerInc','inc');
+  const sel=document.getElementById('autoLogoutSelect');
+  if(sel) sel.value=String(getAutoLogoutTime());
 }
 function renderEmojiPicker(elId,type){
   const el=document.getElementById(elId);if(!el)return;

@@ -584,6 +584,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
   <!-- Desktop nav tabs -->
   <div class="desk-nav" id="deskNav">
+    <button class="desk-tab" onclick="goHome()" title="Zurück zur Monatsauswahl" style="font-size:16px">🏠</button>
     <button class="desk-tab active" id="dt-dash" onclick="go('dash')">🏠 Übersicht</button>
     <button class="desk-tab" id="dt-income" onclick="go('income')">📈 Einnahmen</button>
     <button class="desk-tab" id="dt-expenses" onclick="go('expenses')">📉 Ausgaben</button>
@@ -601,7 +602,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       <button class="mon-arrow" onclick="step(1)" style="font-size:16px">›</button>
       <button class="today-pill" id="todayBtnDesktop" onclick="goToday()">Heute</button>
     </div>
-    <button class="user-avatar-btn" id="userBtn" onclick="openUserMenu()" style="margin-left:8px;margin-right:4px">?</button>
     <span id="syncDot" class="sync-dot sync-saved" style="margin-right:8px;display:none"></span>
   </div>
 
@@ -613,8 +613,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       <div class="page active" id="pg-dash">
         <div class="ios-nav">
           <div class="ios-nav-bar">
-            <button class="ios-nav-btn" onclick="openUserMenu()">
-              <span id="userAvatarNav" class="user-avatar-btn" style="width:28px;height:28px;font-size:11px">?</span>
+            <button class="ios-nav-btn" onclick="goHome()" title="Zurück zur Monatsauswahl">
+              <span style="font-size:20px">🏠</span>
             </button>
             <div class="ios-nav-title" id="brandFamily">FamilyBudget</div>
             <div style="display:flex;align-items:center;gap:6px">
@@ -902,13 +902,51 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
             </div>
           </div>
         </div>
-        <!-- Familie -->
+        <!-- Konto -->
         <div class="ios-section">
-          <div class="ios-section-header">Familie</div>
+          <div class="ios-section-header">Konto</div>
+          <div class="ios-list">
+            <div class="ios-row">
+              <div id="settingsAvatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0">?</div>
+              <div style="flex:1">
+                <div id="settingsEmail" style="font-size:16px;font-weight:600;color:var(--ios-label)"></div>
+                <div id="settingsFamilyName" style="font-size:13px;color:var(--ios-label2)"></div>
+              </div>
+              <span id="syncDotSettings" class="sync-dot sync-saved" style="display:none"></span>
+            </div>
+          </div>
+        </div>
+        <!-- Familie einladen -->
+        <div class="ios-section">
+          <div class="ios-section-header">👥 Familienmitglied einladen</div>
+          <div class="ios-list" style="padding:16px;text-align:center">
+            <div style="font-size:13px;font-weight:600;color:var(--ios-blue);margin-bottom:4px">Einladungscode</div>
+            <div class="invite-code-big" id="settingsInviteCode">——</div>
+            <button onclick="copyInviteCode()" style="background:var(--ios-blue);color:#fff;border:none;border-radius:10px;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Kopieren</button>
+          </div>
+        </div>
+        <!-- Mitglieder -->
+        <div class="ios-section">
+          <div class="ios-section-header">Familienmitglieder</div>
+          <div class="ios-list"><div id="settingsMembersList"></div></div>
+        </div>
+        <!-- Familie wechseln -->
+        <div class="ios-section">
           <div class="ios-list">
             <div class="ios-row ios-row-tappable" onclick="switchFamily()">
               <div class="ios-row-label">🔄 Familie wechseln</div>
               <div class="ios-row-chevron">›</div>
+            </div>
+          </div>
+        </div>
+        <!-- Sync & Logout -->
+        <div class="ios-section">
+          <div class="ios-list">
+            <div class="ios-row ios-row-tappable" onclick="syncNow()">
+              <div class="ios-row-label">☁️ Jetzt synchronisieren</div>
+            </div>
+            <div class="ios-row ios-row-tappable" onclick="doLogout()">
+              <div class="ios-row-label" style="color:var(--ios-red)">🚪 Abmelden</div>
             </div>
           </div>
         </div>
@@ -918,7 +956,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
           <div class="ios-list">
             <div class="ios-row">
               <div class="ios-row-label">Automatisch abmelden nach</div>
-              <select id="autoLogoutSelect" class="ios-form-select" style="flex:0" onchange="setAutoLogoutTime(this.value)">
+              <select id="autoLogoutSelect" class="ios-form-select" style="flex:0 0 auto;width:auto" onchange="setAutoLogoutTime(this.value)">
                 <option value="0">Nie</option>
                 <option value="5">5 Minuten</option>
                 <option value="15">15 Minuten</option>
@@ -1097,31 +1135,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
   </div>
 </div>
 
-<!-- User Panel -->
-<div class="sheet-overlay" id="userOverlay" style="display:none" onclick="if(event.target===this)closeUserMenu()">
-  <div class="sheet" style="max-width:440px">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div id="menuAvatar" style="width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0"></div>
-        <div><div id="menuEmail" style="font-size:16px;font-weight:600;color:var(--ios-label)"></div><div id="menuFamily" style="font-size:13px;color:var(--ios-label2)"></div></div>
-      </div>
-      <button class="sheet-close" onclick="closeUserMenu()">✕</button>
-    </div>
-    <!-- Invite code -->
-    <div style="margin:0 16px;background:rgba(0,122,255,.08);border-radius:14px;padding:16px;text-align:center">
-      <div style="font-size:13px;font-weight:600;color:var(--ios-blue);margin-bottom:4px">Einladungscode</div>
-      <div class="invite-code-big" id="inviteCodeDisplay">——</div>
-      <button onclick="copyInviteCode()" style="background:var(--ios-blue);color:#fff;border:none;border-radius:10px;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Kopieren</button>
-    </div>
-    <!-- Members -->
-    <div style="margin:16px 16px 8px;font-size:13px;font-weight:600;color:var(--ios-label2);text-transform:uppercase;letter-spacing:.5px">Familienmitglieder</div>
-    <div class="ios-list"><div id="membersList"></div></div>
-    <button class="sheet-btn sheet-btn-blue" onclick="syncNow()">☁️ Synchronisieren</button>
-    <button class="sheet-btn sheet-btn-gray" onclick="doLogout()">Abmelden</button>
-  </div>
-</div>
-
 <div class="ios-toast" id="toastEl"></div>
 
 <script>
@@ -1228,7 +1241,7 @@ async function onLogin(user){
 }
 
 async function doLogout(){
-  closeUserMenu();
+  if(typeof closeUserMenu==="function")closeUserMenu();
   stopInactivityTimer();
   await sb.auth.signOut();
   currentUser=null;currentProfile=null;currentFamily=null;D={};REC=[];
@@ -1261,7 +1274,7 @@ async function doReset(){
 }
 
 async function switchFamily(){
-  closeUserMenu();
+  if(typeof closeUserMenu==="function")closeUserMenu();
   if(!confirm('Familie wechseln? Du verlässt die aktuelle Familie und kannst einer neuen beitreten oder eine neue erstellen.')) return;
   // Remove family_id from profile
   await sb.from('profiles').update({family_id:null}).eq('id',currentUser.id);
@@ -1399,10 +1412,16 @@ function showSyncPill(state){
     dot.className='sync-dot sync-'+state;
     if(state==='saved')setTimeout(()=>{dot.style.display='none'},3000);
   }
+  const dot2=document.getElementById('syncDotSettings');
+  if(dot2){
+    dot2.style.display='inline-block';
+    dot2.className='sync-dot sync-'+state;
+    if(state==='saved')setTimeout(()=>{dot2.style.display='none'},3000);
+  }
 }
 
 async function syncNow(){
-  closeUserMenu();
+  if(typeof closeUserMenu==="function")closeUserMenu();
   showSyncPill('saving');
   await loadAllData();
   showSyncPill('saved');
@@ -1528,19 +1547,21 @@ function hamGo(p){
 // ═══════════════════════════════════════════════════════════
 // USER MENU
 // ═══════════════════════════════════════════════════════════
-async function openUserMenu(){
+async function populateAccountSettings(){
+  if(!currentUser||!currentFamily) return;
   const email=currentUser.email||'';
   const initial=email[0]?.toUpperCase()||'?';
   const colorIdx=email.charCodeAt(0)%AVATAR_COLORS.length;
   const color=AVATAR_COLORS[colorIdx];
-  document.getElementById('menuAvatar').style.cssText=`background:${color}22;color:${color};width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700`;
-  document.getElementById('menuAvatar').textContent=initial;
-  document.getElementById('menuEmail').textContent=email;
-  document.getElementById('menuFamily').textContent=currentFamily?.name||'';
-  document.getElementById('inviteCodeDisplay').textContent=currentFamily?.invite_code||'——';
+  const av=document.getElementById('settingsAvatar');
+  if(av){av.style.background=color+'22';av.style.color=color;av.textContent=initial;}
+  const emailEl=document.getElementById('settingsEmail');if(emailEl)emailEl.textContent=email;
+  const famEl=document.getElementById('settingsFamilyName');if(famEl)famEl.textContent=currentFamily?.name||'';
+  const codeEl=document.getElementById('settingsInviteCode');if(codeEl)codeEl.textContent=currentFamily?.invite_code||'——';
   // Load members
   const {data:members}=await sb.from('profiles').select('*').eq('family_id',currentFamily.id);
-  document.getElementById('membersList').innerHTML=(members||[]).map(m=>{
+  const listEl=document.getElementById('settingsMembersList');
+  if(listEl) listEl.innerHTML=(members||[]).map(m=>{
     const c=AVATAR_COLORS[m.username?.charCodeAt(0)%AVATAR_COLORS.length||0];
     return `<div class="member-row">
       <div style="width:38px;height:38px;border-radius:50%;background:${c}22;color:${c};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${(m.username||'?')[0].toUpperCase()}</div>
@@ -1548,9 +1569,14 @@ async function openUserMenu(){
       ${m.id===currentUser.id?'<span class="ios-badge ios-badge-blue">Du</span>':''}
     </div>`;
   }).join('');
-  document.getElementById('userOverlay').style.display='flex';
 }
-function closeUserMenu(){document.getElementById('userOverlay').style.display='none';}
+// Home button — returns to month selection screen
+function goHome(){
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('app').style.display='none';
+  showMonthSelect();
+}
+
 
 async function copyInviteCode(){
   const code=currentFamily?.invite_code||'';
@@ -1757,16 +1783,14 @@ function rInc(){
   }
   el.innerHTML=rows.map(e=>`
     <div class="txn-row">
-      <div class="txn-icon" style="background:${catColor(e.cat)}18">${catEmoji(e.cat)||'💰'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:700;color:var(--green)">+ ${fmt(e.amount)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${e.cat} · ${fd(e.date)}</div>
-          ${e.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note}</div>`:''}
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button onclick="openEditInc(${e.id})" title="Bearbeiten" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">✏️</button>
-          <button onclick="del('i',${e.id})" title="Löschen" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">❌</button>
-        </div>
+      <div class="txn-icon" style="background:${catColor(catN(e.cat))}18">${catEmoji(catN(e.cat))||'💰'}</div>
+      <div class="txn-body">
+        <div class="txn-title" style="color:var(--ios-green)">+ ${fmt(e.amount)}</div>
+        <div class="txn-sub">${catN(e.cat)} · ${fd(e.date)}${e.note?' · '+e.note:''}</div>
+      </div>
+      <div class="txn-actions">
+        <button class="txn-btn txn-edit-btn" onclick="openEditInc(${e.id})">✏️</button>
+        <button class="txn-btn txn-del-btn" onclick="del('i',${e.id})">❌</button>
       </div>
     </div>`).join('');
 }
@@ -1778,15 +1802,12 @@ function setExpFilt(cat){
 }
 function rExp(){
   document.getElementById('elbl').textContent=lbl();
-  // Populate all dynamic selects
   const ec=document.getElementById('ec');
   const epills=document.getElementById('efilt-pills');
   if(epills)epills.innerHTML=CATS.exp.map(c=>{const n=typeof c==='object'?c.n:c;const e=typeof c==='object'?c.e:'';return `<button class="rec-pill rec-pill-gray" onclick="setExpFilt('${n}')">${e} ${n}</button>`}).join('');
   if(ec) ec.innerHTML=CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const epay=document.getElementById('epay');
   if(epay) epay.innerHTML=CATS.pay.map(p=>`<option>${p}</option>`).join('');
-  const efilt=document.getElementById('efilt');
-  if(efilt) efilt.innerHTML=`<option value="">Alle Kategorien</option>`+CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const srch=(document.getElementById('esrch')?.value||'').toLowerCase();
   const filtVal=window._expFilt||'';
   const rows=[...md().expenses]
@@ -1799,18 +1820,13 @@ function rExp(){
   el.innerHTML=rows.map(e=>`
     <div class="txn-row">
       <div class="txn-icon" style="background:${catColor(catN(e.cat))}18">${catEmoji(catN(e.cat))||'📦'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <div style="font-size:15px;font-weight:700;color:var(--red)">- ${fmt(e.amount)}</div>
-            ${e.recId?'<span style="font-size:10px;background:var(--bbg);color:var(--blue);padding:2px 6px;border-radius:10px;font-weight:600"><i class="ti ti-repeat"></i> Auto</span>':''}
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${e.cat} · ${fd(e.date)} · ${e.pay||''}</div>
-          ${e.recName||e.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.recName||e.note}</div>`:''}
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button onclick="openEditExp(${e.id})" title="Bearbeiten" style="width:40px;height:40px;border-radius:var(--rs);background:var(--bbg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">✏️</button>
-          <button onclick="del('e',${e.id})" title="Löschen" style="width:40px;height:40px;border-radius:var(--rs);background:var(--rbg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px">❌</button>
-        </div>
+      <div class="txn-body">
+        <div class="txn-title" style="color:var(--ios-red)">- ${fmt(e.amount)}${e.recId?' 🔁':''}</div>
+        <div class="txn-sub">${catN(e.cat)} · ${fd(e.date)}${e.pay?' · '+e.pay:''}${e.recName||e.note?' · '+(e.recName||e.note):''}</div>
+      </div>
+      <div class="txn-actions">
+        <button class="txn-btn txn-edit-btn" onclick="openEditExp(${e.id})">✏️</button>
+        <button class="txn-btn txn-del-btn" onclick="del('e',${e.id})">❌</button>
       </div>
     </div>`).join('');
 }
@@ -2068,6 +2084,7 @@ function rSettings(){
   renderEmojiPicker('emojiPickerInc','inc');
   const sel=document.getElementById('autoLogoutSelect');
   if(sel) sel.value=String(getAutoLogoutTime());
+  populateAccountSettings();
 }
 function renderEmojiPicker(elId,type){
   const el=document.getElementById(elId);if(!el)return;

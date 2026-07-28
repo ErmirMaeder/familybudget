@@ -467,6 +467,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button type="button" class="login-btn" id="btn-login" onclick="doLogin()">Anmelden</button>
     <div id="login-err" class="login-err"></div>
     <button type="button" class="login-link" onclick="switchTab('reset')">Passwort vergessen?</button>
+    <button type="button" class="login-link" onclick="enterDemoMode()" style="color:rgba(255,255,255,.35);margin-top:4px">🎨 Design testen ohne Login</button>
   </div>
   <!-- REGISTER -->
   <div id="form-register" style="display:none;width:100%;max-width:340px">
@@ -589,7 +590,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button class="desk-tab" id="dt-income" onclick="go('income')">📈 Einnahmen</button>
     <button class="desk-tab" id="dt-expenses" onclick="go('expenses')">📉 Ausgaben</button>
     <button class="desk-tab" id="dt-overview" onclick="go('overview')">📅 Jahresübersicht</button>
-    <button class="desk-tab" id="dt-recurring" onclick="go('recurring')">🔁 Daueraufträge</button>
     <button class="desk-tab" id="dt-settings" onclick="go('settings')">⚙️ Einstellungen</button>
     <button class="desk-tab" id="dt-help" onclick="go('help')">❓ Hilfe</button>
     <div style="flex:1"></div>
@@ -631,12 +631,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
         <div id="dind-wrap"></div>
         <div id="rec-auto-notice" style="display:none"></div>
         <div id="rec-inc-notice" style="display:none"></div>
-        <div class="metric-grid" id="scards"></div>
-        <div id="personSplitCard" style="display:none">
-          <div style="margin:16px 16px 0;font-size:13px;font-weight:600;color:var(--ios-label2);text-transform:uppercase;letter-spacing:.5px">👥 Budget pro Person</div>
-          <div class="ios-list" style="margin-top:6px"><div id="personSplitList"></div></div>
-        </div>
-        <div class="chart-card" style="margin-top:16px">
+        <div class="chart-card" style="margin-top:12px">
           <div class="chart-title">Ausgaben nach Kategorie</div>
           <div class="chart-wrap" style="height:200px"><canvas id="pieC"></canvas></div>
           <div id="pieLeg" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:13px"></div>
@@ -644,6 +639,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
         <div class="chart-card">
           <div class="chart-title">Einnahmen vs. Ausgaben</div>
           <div class="chart-wrap" style="height:160px"><canvas id="barC"></canvas></div>
+        </div>
+        <div class="metric-grid" id="scards" style="margin-top:16px"></div>
+        <div id="personSplitCard" style="display:none">
+          <div style="margin:16px 16px 0;font-size:13px;font-weight:600;color:var(--ios-label2);text-transform:uppercase;letter-spacing:.5px">👥 Budget pro Person</div>
+          <div class="ios-list" style="margin-top:6px"><div id="personSplitList"></div></div>
         </div>
         <div class="ios-section">
           <div class="ios-section-header">Sparquote</div>
@@ -684,7 +684,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
           <div class="ios-section">
             <div class="ios-section-header" style="display:flex;align-items:center;justify-content:space-between">
               <span>Wiederkehrend</span>
-              <button onclick="openRecIncModal(null)" style="background:none;border:none;color:var(--ios-blue);font-size:13px;cursor:pointer;font-family:inherit">+ Neu</button>
+              <div style="display:flex;gap:12px">
+                <button onclick="transferAllRecInc()" style="background:none;border:none;color:var(--ios-green);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Übertragen</button>
+                <button onclick="openRecIncModal(null)" style="background:none;border:none;color:var(--ios-blue);font-size:13px;cursor:pointer;font-family:inherit">+ Neu</button>
+              </div>
             </div>
             <div id="recIncList"></div>
           </div>
@@ -733,8 +736,22 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
             <button class="ios-nav-btn" onclick="tf('eform')">+ Neu</button>
           </div>
         </div>
+        <!-- Wiederkehrende Ausgaben -->
+        <div id="recExpSummaryCard">
+          <div class="ios-section">
+            <div class="ios-section-header" style="display:flex;align-items:center;justify-content:space-between">
+              <span>Wiederkehrend</span>
+              <div style="display:flex;gap:12px">
+                <button onclick="transferAllRecExp()" style="background:none;border:none;color:var(--ios-blue);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Übertragen</button>
+                <button onclick="openRecModal(null)" style="background:none;border:none;color:var(--ios-blue);font-size:13px;cursor:pointer;font-family:inherit">+ Neu</button>
+              </div>
+            </div>
+            <div id="rec-summary-ios" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none"></div>
+            <div id="rec-list" style="padding-bottom:4px"></div>
+          </div>
+        </div>
         <!-- Search + filter -->
-        <div class="ios-search" style="margin:12px 16px 0">
+        <div class="ios-search" style="margin:16px 16px 0">
           <span class="ios-search-icon">🔍</span>
           <input type="text" id="esrch" placeholder="Suchen…" oninput="rExp()">
         </div>
@@ -816,25 +833,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
           <div class="ios-section-header">Top Kategorien – <span id="stlbl"></span></div>
           <div class="ios-list" style="padding:14px 16px"><div id="topcats"></div></div>
         </div>
-        <div style="height:20px"></div>
-      </div>
-
-      <!-- ── DAUERAUFTRÄGE ── -->
-      <div class="page" id="pg-recurring">
-        <div class="ios-nav">
-          <div class="ios-nav-bar">
-            <div style="width:60px"></div>
-            <div class="ios-nav-title">Daueraufträge</div>
-            <button class="ios-nav-btn" onclick="openRecModal(null)">+ Neu</button>
-          </div>
-        </div>
-        <div class="ios-section">
-          <div class="ios-section-header" style="display:flex;align-items:center;justify-content:space-between">
-            <span>Fällig in <span id="rec-month-lbl"></span></span>
-          </div>
-          <div id="rec-summary-ios" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none"></div>
-        </div>
-        <div id="rec-list" style="padding-bottom:8px"></div>
         <div style="height:20px"></div>
       </div>
 
@@ -1021,8 +1019,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button class="ios-tab" id="tab-expenses" onclick="go('expenses')">
       <span class="ios-tab-icon">📉</span><span class="ios-tab-label">Ausgaben</span>
     </button>
-    <button class="ios-tab" id="tab-recurring" onclick="go('recurring')">
-      <span class="ios-tab-icon">🔁</span><span class="ios-tab-label">Aufträge</span>
+    <button class="ios-tab" id="tab-overview" onclick="go('overview')">
+      <span class="ios-tab-icon">📅</span><span class="ios-tab-label">Jahres</span>
     </button>
     <button class="ios-tab" id="tab-settings" onclick="go('settings')">
       <span class="ios-tab-icon">⚙️</span><span class="ios-tab-label">Mehr</span>
@@ -1140,6 +1138,31 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 <script>
 
 'use strict';
+
+// ═══════════════════════════════════════════════════════════
+// EIGENER BESTÄTIGUNGSDIALOG
+// (window.confirm() wird in iOS-Standalone-PWA-Modus unterdrückt
+//  und liefert sofort false zurück — daher eigene Lösung nötig)
+// ═══════════════════════════════════════════════════════════
+function showConfirm(message,confirmLabel){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.className='sheet-overlay';
+    overlay.style.zIndex='9999';
+    overlay.innerHTML=`<div class="sheet" style="max-width:380px">
+      <div class="sheet-handle"></div>
+      <div style="padding:20px 20px 16px;text-align:center;font-size:16px;color:var(--ios-label);line-height:1.5">${message}</div>
+      <button class="sheet-btn sheet-btn-red" id="confirmYesBtn">${confirmLabel||'Bestätigen'}</button>
+      <button class="sheet-btn sheet-btn-gray" id="confirmNoBtn">Abbrechen</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    const cleanup=(result)=>{document.body.removeChild(overlay);resolve(result);};
+    overlay.querySelector('#confirmYesBtn').onclick=()=>cleanup(true);
+    overlay.querySelector('#confirmNoBtn').onclick=()=>cleanup(false);
+    overlay.onclick=(e)=>{if(e.target===overlay)cleanup(false);};
+  });
+}
+
 // ═══════════════════════════════════════════════════════════
 // SUPABASE INIT
 // ═══════════════════════════════════════════════════════════
@@ -1186,10 +1209,63 @@ let D={}, REC=[], REC_INC=[], PERSONS=[];
 let cy=new Date().getFullYear(), cm=new Date().getMonth()+1, py=cy, ap='dash';
 let pC,bC,sC,yrC;
 let currentUser=null, currentProfile=null, currentFamily=null;
+let demoMode=false;
 let saveTimer=null;
 
 // ═══════════════════════════════════════════════════════════
-// AUTH
+// DEMO-MODUS — App testen ohne Login/Supabase
+// ═══════════════════════════════════════════════════════════
+function enterDemoMode(){
+  demoMode=true;
+  currentUser={id:'demo-user',email:'demo@familybudget.ch'};
+  currentProfile={id:'demo-user',username:'demo',role:'admin'};
+  currentFamily={id:'demo-family',name:'Demo-Familie',invite_code:'DEMO01'};
+
+  // Beispiel-Kategorien (Standard + Emojis, bereits eingebaut)
+  CATS={exp:[...DEF_EXP_CATS],inc:[...DEF_INC_CATS],pay:[...DEF_PAY]};
+
+  // Beispiel-Personen
+  PERSONS=['Ermir','Larissa'];
+
+  // Beispiel-Daueraufträge
+  REC=[
+    {id:1,name:'Miete',amount:1850,cat:'Miete',day:1,pay:'Banküberweisung',interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]},
+    {id:2,name:'Krankenkasse',amount:380,cat:'Versicherungen',day:1,pay:'Banküberweisung',interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]},
+    {id:3,name:'Netflix',amount:17,cat:'Streaming',day:5,pay:'Kreditkarte',interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]}
+  ];
+  REC_INC=[
+    {id:1,name:'Lohn Ermir',amount:6800,cat:'Lohn',day:1,interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]},
+    {id:2,name:'Lohn Larissa',amount:2800,cat:'Lohn',day:1,interval:'monthly',from:'2025-01',until:'',active:true,note:'',skipped:[]}
+  ];
+
+  // Beispiel-Daten für den aktuellen Monat
+  const now=new Date();
+  const k=mk(now.getFullYear(),now.getMonth()+1);
+  D={};
+  D[k]={
+    income:[
+      {id:101,date:`${k}-01`,cat:'Lohn',amount:6800,note:'Lohn Ermir'},
+      {id:102,date:`${k}-01`,cat:'Lohn',amount:2800,note:'Lohn Larissa'}
+    ],
+    expenses:[
+      {id:201,date:`${k}-01`,cat:'Miete',amount:1850,pay:'Banküberweisung',note:''},
+      {id:202,date:`${k}-03`,cat:'Lebensmittel',amount:420,pay:'Kreditkarte',note:'Migros'},
+      {id:203,date:`${k}-05`,cat:'Streaming',amount:17,pay:'Kreditkarte',note:'Netflix'},
+      {id:204,date:`${k}-10`,cat:'Freizeit',amount:85,pay:'Bar',note:'Kino'},
+      {id:205,date:`${k}-15`,cat:'Auto',amount:220,pay:'Kreditkarte',note:'Tanken'}
+    ]
+  };
+
+  const app=document.getElementById('app');
+  app.style.display='none';app.classList.remove('visible');
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('familyScreen').style.display='none';
+  hideSplash();
+  toast('🎨 Demo-Modus aktiv — Änderungen werden nicht gespeichert.');
+  showApp();
+}
+
+
 // ═══════════════════════════════════════════════════════════
 async function doLogin(){
   const email=document.getElementById('l-email').value.trim();
@@ -1243,8 +1319,9 @@ async function onLogin(user){
 async function doLogout(){
   if(typeof closeUserMenu==="function")closeUserMenu();
   stopInactivityTimer();
-  await sb.auth.signOut();
-  currentUser=null;currentProfile=null;currentFamily=null;D={};REC=[];
+  if(!demoMode) await sb.auth.signOut();
+  demoMode=false;
+  currentUser=null;currentProfile=null;currentFamily=null;D={};REC=[];REC_INC=[];PERSONS=[];
   document.getElementById('app').style.display='none';
   document.getElementById('app').classList.remove('visible');
   document.getElementById('monthSelectScreen').style.display='none';
@@ -1275,7 +1352,8 @@ async function doReset(){
 
 async function switchFamily(){
   if(typeof closeUserMenu==="function")closeUserMenu();
-  if(!confirm('Familie wechseln? Du verlässt die aktuelle Familie und kannst einer neuen beitreten oder eine neue erstellen.')) return;
+  if(demoMode){toast('Im Demo-Modus nicht verfügbar. Bitte melde dich ab und logge dich richtig ein.');return;}
+  if(!(await showConfirm('Familie wechseln? Du verlässt die aktuelle Familie und kannst einer neuen beitreten oder eine neue erstellen.','Wechseln'))) return;
   // Remove family_id from profile
   await sb.from('profiles').update({family_id:null}).eq('id',currentUser.id);
   currentProfile=null;currentFamily=null;D={};REC=[];
@@ -1375,6 +1453,7 @@ async function loadAllData(){
 
 async function saveMonthData(key){
   if(!currentFamily) return;
+  if(demoMode){showSyncPill('saved');return;}
   showSyncPill('saving');
   const {error}=await sb.from('budget_data').upsert({family_id:currentFamily.id,month_key:key,data:D[key]||{income:[],expenses:[]},updated_at:new Date().toISOString()},{onConflict:'family_id,month_key'});
   if(error){showSyncPill('error');return;}
@@ -1383,6 +1462,7 @@ async function saveMonthData(key){
 
 async function saveCats(){
   if(!currentFamily) return;
+  if(demoMode){showSyncPill('saved');return;}
   showSyncPill('saving');
   const {error}=await sb.from('budget_data').upsert({family_id:currentFamily.id,month_key:'__settings__',data:{cats:CATS},updated_at:new Date().toISOString()},{onConflict:'family_id,month_key'});
   if(error){showSyncPill('error');return;}
@@ -1391,6 +1471,7 @@ async function saveCats(){
 
 async function saveRecurring(){
   if(!currentFamily) return;
+  if(demoMode){showSyncPill('saved');return;}
   showSyncPill('saving');
   const {error}=await sb.from('recurring').upsert({family_id:currentFamily.id,data:{rec:REC,recInc:REC_INC,persons:PERSONS},updated_at:new Date().toISOString()},{onConflict:'family_id'});
   if(error){showSyncPill('error');return;}
@@ -1422,6 +1503,7 @@ function showSyncPill(state){
 
 async function syncNow(){
   if(typeof closeUserMenu==="function")closeUserMenu();
+  if(demoMode){toast('Demo-Modus: keine echte Synchronisierung.');return;}
   showSyncPill('saving');
   await loadAllData();
   showSyncPill('saved');
@@ -1481,36 +1563,51 @@ function confirmMonthSelect(useToday){
 let inactivityTimer=null;
 let autoLogoutMinutes=0; // 0 = deaktiviert
 
+let lastActivityTime=Date.now();
+let inactivityCheckInterval=null;
+
 function getAutoLogoutTime(){
   try{ return parseInt(localStorage.getItem('fb_auto_logout_min')||'0'); }catch{ return 0; }
 }
 function setAutoLogoutTime(minutes){
   autoLogoutMinutes=parseInt(minutes)||0;
   try{ localStorage.setItem('fb_auto_logout_min', String(autoLogoutMinutes)); }catch{}
-  resetInactivityTimer();
+  lastActivityTime=Date.now();
   toast(autoLogoutMinutes===0?'Automatische Abmeldung deaktiviert':`Automatische Abmeldung nach ${minutes} Min. aktiviert`);
 }
+function markActivity(){ lastActivityTime=Date.now(); }
 function startInactivityTimer(){
   autoLogoutMinutes=getAutoLogoutTime();
   const sel=document.getElementById('autoLogoutSelect');
   if(sel) sel.value=String(autoLogoutMinutes);
-  resetInactivityTimer();
+  lastActivityTime=Date.now();
   ['click','touchstart','keydown','mousemove','scroll'].forEach(evt=>{
-    document.addEventListener(evt, resetInactivityTimer, {passive:true});
+    document.addEventListener(evt, markActivity, {passive:true});
+  });
+  // Zeitstempel-basierte Prüfung — robust auch bei Hintergrund-Tabs/Standby
+  clearInterval(inactivityCheckInterval);
+  inactivityCheckInterval=setInterval(()=>{
+    if(!currentUser||!autoLogoutMinutes||autoLogoutMinutes<=0) return;
+    const elapsed=Date.now()-lastActivityTime;
+    if(elapsed>=autoLogoutMinutes*60*1000){
+      toast('Automatisch abgemeldet wegen Inaktivität');
+      setTimeout(()=>doLogout(),800);
+    }
+  },5000);
+  // Zusätzlich beim Zurückkehren in den Tab sofort neu prüfen (falls Intervall pausiert war)
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'&&currentUser&&autoLogoutMinutes>0){
+      const elapsed=Date.now()-lastActivityTime;
+      if(elapsed>=autoLogoutMinutes*60*1000){
+        toast('Automatisch abgemeldet wegen Inaktivität');
+        setTimeout(()=>doLogout(),800);
+      }
+    }
   });
 }
-function resetInactivityTimer(){
-  clearTimeout(inactivityTimer);
-  if(!autoLogoutMinutes || autoLogoutMinutes<=0) return;
-  inactivityTimer=setTimeout(()=>{
-    if(currentUser){
-      toast('Automatisch abgemeldet wegen Inaktivität');
-      setTimeout(()=>doLogout(),1200);
-    }
-  }, autoLogoutMinutes*60*1000);
-}
+function resetInactivityTimer(){ lastActivityTime=Date.now(); }
 function stopInactivityTimer(){
-  clearTimeout(inactivityTimer);
+  clearInterval(inactivityCheckInterval);
 }
 
 function hideSplash(){document.getElementById('splash').style.display='none';}
@@ -1549,9 +1646,17 @@ async function populateAccountSettings(){
   const emailEl=document.getElementById('settingsEmail');if(emailEl)emailEl.textContent=email;
   const famEl=document.getElementById('settingsFamilyName');if(famEl)famEl.textContent=currentFamily?.name||'';
   const codeEl=document.getElementById('settingsInviteCode');if(codeEl)codeEl.textContent=currentFamily?.invite_code||'——';
+  const listEl=document.getElementById('settingsMembersList');
+  if(demoMode){
+    if(listEl) listEl.innerHTML=`<div class="member-row">
+      <div style="width:38px;height:38px;border-radius:50%;background:${color}22;color:${color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">${initial}</div>
+      <div style="flex:1"><div style="font-size:16px;font-weight:500;color:var(--ios-label)">demo (Testkonto)</div><div style="font-size:13px;color:var(--ios-label2)">Administrator</div></div>
+      <span class="ios-badge ios-badge-blue">Du</span>
+    </div>`;
+    return;
+  }
   // Load members
   const {data:members}=await sb.from('profiles').select('*').eq('family_id',currentFamily.id);
-  const listEl=document.getElementById('settingsMembersList');
   if(listEl) listEl.innerHTML=(members||[]).map(m=>{
     const c=AVATAR_COLORS[m.username?.charCodeAt(0)%AVATAR_COLORS.length||0];
     return `<div class="member-row">
@@ -1613,17 +1718,25 @@ function recDueInMonth(r,y,m){
   return false;
 }
 function recAlreadyBooked(r,y,m){const d=D[mk(y,m)]||{expenses:[]};return d.expenses.some(e=>e.recId===r.id);}
-function autoBookRecurring(){
+function transferAllRecExp(){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const k=ck();ensure(k);let booked=[];
   REC.forEach(r=>{
     if(!r.active)return;if(r.skipped&&r.skipped.includes(k))return;
     if(!recDueInMonth(r,cy,cm))return;if(recAlreadyBooked(r,cy,cm))return;
     const day=Math.min(r.day,new Date(cy,cm,0).getDate());
     const date=`${cy}-${String(cm).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    // Nutzt die AKTUELLEN Werte aus r (falls zuvor angepasst)
     D[k].expenses.push({id:Date.now()+Math.random(),date,cat:r.cat,amount:r.amount,pay:r.pay,note:r.note||r.name,recId:r.id,recName:r.name});
     booked.push(r.name);
   });
-  if(booked.length){save();return booked;}return[];
+  if(booked.length){
+    save();rDash();rExp();rRec();
+    toast(`${booked.length} Dauerauftrag${booked.length>1?'äge':''} übertragen: ${booked.join(', ')}`);
+  } else {
+    toast('Nichts zum Übertragen bereit.');
+  }
+  return booked;
 }
 function skipRec(rid){
   const k=ck(),r=REC.find(x=>x.id===rid);if(!r)return;
@@ -1633,6 +1746,7 @@ function skipRec(rid){
   save(true);rRec();
 }
 function bookNow(rid){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const r=REC.find(x=>x.id===rid);if(!r)return;
   if(recAlreadyBooked(r,cy,cm)){toast('Bereits gebucht!');return;}
   const k=ck();ensure(k);
@@ -1667,12 +1781,50 @@ function updMon(){
     btn.style.display=isCur?'none':'inline-flex';
     btn.style.alignItems='center';
   });
+  const closed=isMonthClosed();
   const ind=document.getElementById('dind-wrap');
   if(ind){
-    ind.innerHTML=isCur
-      ?`<div class="ios-notice ios-notice-blue" style="margin-top:8px"><span class="ios-notice-dot"></span><span>Aktueller Monat</span></div>`
-      :`<div class="ios-notice ios-notice-orange" style="margin-top:8px"><span class="ios-notice-dot"></span><span>Archivierter Monat · ${lbl()}</span></div>`;
+    if(closed){
+      ind.innerHTML=`<div class="ios-notice ios-notice-orange" style="margin-top:8px;align-items:center">
+        <span class="ios-notice-dot"></span>
+        <span style="flex:1">🔒 <strong>Abgeschlossener Monat</strong> — Werte können nicht mehr geändert werden.</span>
+        <button onclick="toggleMonthClosed()" style="background:var(--ios-blue);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">Wieder aktivieren</button>
+      </div>`;
+    } else if(isCur){
+      ind.innerHTML=`<div class="ios-notice ios-notice-blue" style="margin-top:8px;align-items:center">
+        <span class="ios-notice-dot"></span>
+        <span style="flex:1">Aktueller Monat</span>
+        <button onclick="toggleMonthClosed()" style="background:var(--ios-fill);color:var(--ios-label2);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">Abschliessen</button>
+      </div>`;
+    } else {
+      ind.innerHTML=`<div class="ios-notice" style="margin-top:8px;align-items:center;border-left:3px solid var(--ios-gray2)">
+        <span class="ios-notice-dot" style="background:var(--ios-gray2)"></span>
+        <span style="flex:1;color:var(--ios-label2)">${label}</span>
+        <button onclick="toggleMonthClosed()" style="background:var(--ios-fill);color:var(--ios-label2);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">Abschliessen</button>
+      </div>`;
+    }
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// MONAT ABSCHLIESSEN / WIEDER AKTIVIEREN
+// ═══════════════════════════════════════════════════════════
+function isMonthClosed(){
+  const k=ck();
+  return !!(D[k]&&D[k].closed);
+}
+async function toggleMonthClosed(){
+  const k=ck();ensure(k);
+  const wasClosed=!!D[k].closed;
+  if(!wasClosed){
+    const ok=await showConfirm(`${lbl()} abschliessen? Einnahmen und Ausgaben können danach nicht mehr geändert werden, bis du den Monat wieder aktivierst.`,'Abschliessen');
+    if(!ok)return;
+  }
+  D[k].closed=!wasClosed;
+  save();
+  updMon();
+  render(ap);
+  toast(wasClosed?`${lbl()} wieder aktiviert.`:`${lbl()} abgeschlossen 🔒`);
 }
 function openPicker(){py=cy;renderPicker();document.getElementById('pickerOverlay').style.display='flex';}
 function closePicker(){document.getElementById('pickerOverlay').style.display='none';}
@@ -1692,7 +1844,7 @@ function go(p){
   document.querySelectorAll('.ios-tab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.desk-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('pg-'+p).classList.add('active');
-  const idx={dash:0,income:1,expenses:2,overview:3,stats:4,recurring:5,settings:6,help:7}[p]||0;
+  const idx={dash:0,income:1,expenses:2,overview:3,stats:4,settings:5,help:6}[p]||0;
   document.querySelectorAll('.ntab')[idx]?.classList.add('active');
   const bn=document.getElementById('tab-'+p);if(bn)bn.classList.add('active');
   const dt=document.getElementById('dt-'+p);if(dt)dt.classList.add('active');
@@ -1701,8 +1853,8 @@ function go(p){
 }
 function refresh(){render(ap);}
 function render(p){
-  if(p==='dash')rDash();else if(p==='income')rInc();else if(p==='expenses')rExp();
-  else if(p==='overview')rOv();else if(p==='stats')rStats();else if(p==='recurring')rRec();
+  if(p==='dash')rDash();else if(p==='income')rInc();else if(p==='expenses'){rExp();rRec();}
+  else if(p==='overview')rOv();else if(p==='stats')rStats();
   else if(p==='settings')rSettings();
   else if(p==='help'){} // static page, nothing to render
 }
@@ -1712,14 +1864,19 @@ function render(p){
 // ═══════════════════════════════════════════════════════════
 function rDash(){
   updMon();
-  const booked=autoBookRecurring();
-  const bookedInc=autoBookRecInc();
+  // Kein automatisches Buchen mehr — nur zählen wie viele bereit zum Übertragen sind
+  const pendingExp=REC.filter(r=>r.active&&recDueInMonth(r,cy,cm)&&!recAlreadyBooked(r,cy,cm)&&!(r.skipped||[]).includes(ck()));
+  const pendingInc=REC_INC.filter(r=>r.active&&recIncDueInMonth(r,cy,cm)&&!recIncAlreadyBooked(r,cy,cm)&&!(r.skipped||[]).includes(ck()));
   const notice=document.getElementById('rec-auto-notice');
   const noticeInc=document.getElementById('rec-inc-notice');
-  if(booked.length){notice.style.display='block';notice.className='ios-notice ios-notice-orange';notice.innerHTML=`<span class="ios-notice-dot"></span><span>🔁 <strong>${booked.length} Dauerauftrag${booked.length>1?'äge':''} automatisch eingetragen:</strong> ${booked.join(', ')}</span>`;}
-  else{notice.style.display='none';}
-  if(bookedInc.length){noticeInc.style.display='block';noticeInc.className='ios-notice ios-notice-green';noticeInc.innerHTML=`<span class="ios-notice-dot"></span><span>💰 <strong>${bookedInc.length} Einnahme${bookedInc.length>1?'n':''} eingetragen:</strong> ${bookedInc.join(', ')}</span>`;}
-  else{noticeInc.style.display='none';}
+  if(pendingExp.length){
+    notice.style.display='block';notice.className='ios-notice ios-notice-orange';
+    notice.innerHTML=`<span class="ios-notice-dot"></span><span style="flex:1">🔁 <strong>${pendingExp.length} Dauerauftrag${pendingExp.length>1?'äge':''} bereit:</strong> ${pendingExp.map(r=>r.name).join(', ')}</span><button onclick="transferAllRecExp()" style="background:var(--ios-blue);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">Übertragen</button>`;
+  } else {notice.style.display='none';}
+  if(pendingInc.length){
+    noticeInc.style.display='block';noticeInc.className='ios-notice ios-notice-green';
+    noticeInc.innerHTML=`<span class="ios-notice-dot"></span><span style="flex:1">💰 <strong>${pendingInc.length} Einnahme${pendingInc.length>1?'n':''} bereit:</strong> ${pendingInc.map(r=>r.name).join(', ')}</span><button onclick="transferAllRecInc()" style="background:var(--ios-green);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">Übertragen</button>`;
+  } else {noticeInc.style.display='none';}
   const t=ttl(ck());
   const pct=t.i>0?Math.min(100,Math.round(t.s/t.i*100)):0;
   document.getElementById('dtitle').textContent=lbl();
@@ -1767,6 +1924,7 @@ function rInc(){
   const sel=document.getElementById('ic');
   if(sel) sel.innerHTML=CATS.inc.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   renderRecIncList();
+  const closed=isMonthClosed();
   const rows=[...md().income].sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('inc-list');
   if(!rows.length){
@@ -1780,8 +1938,9 @@ function rInc(){
         <div class="txn-sub">${catN(e.cat)} · ${fd(e.date)}${e.note?' · '+e.note:''}</div>
       </div>
       <div class="txn-actions">
+        ${closed?'<span style="font-size:18px;padding:0 8px" title="Monat abgeschlossen">🔒</span>':`
         <button class="txn-btn txn-edit-btn" onclick="openEditInc(${e.id})">✏️</button>
-        <button class="txn-btn txn-del-btn" onclick="del('i',${e.id})">❌</button>
+        <button class="txn-btn txn-del-btn" onclick="del('i',${e.id})">❌</button>`}
       </div>
     </div>`).join('');
 }
@@ -1799,6 +1958,7 @@ function rExp(){
   if(ec) ec.innerHTML=CATS.exp.map(c=>`<option value="${typeof c==='object'?c.n:c}">${typeof c==='object'?c.e+' '+c.n:c}</option>`).join('');
   const epay=document.getElementById('epay');
   if(epay) epay.innerHTML=CATS.pay.map(p=>`<option>${p}</option>`).join('');
+  const closed=isMonthClosed();
   const srch=(document.getElementById('esrch')?.value||'').toLowerCase();
   const filtVal=window._expFilt||'';
   const rows=[...md().expenses]
@@ -1816,8 +1976,9 @@ function rExp(){
         <div class="txn-sub">${catN(e.cat)} · ${fd(e.date)}${e.pay?' · '+e.pay:''}${e.recName||e.note?' · '+(e.recName||e.note):''}</div>
       </div>
       <div class="txn-actions">
+        ${closed?'<span style="font-size:18px;padding:0 8px" title="Monat abgeschlossen">🔒</span>':`
         <button class="txn-btn txn-edit-btn" onclick="openEditExp(${e.id})">✏️</button>
-        <button class="txn-btn txn-del-btn" onclick="del('e',${e.id})">❌</button>
+        <button class="txn-btn txn-del-btn" onclick="del('e',${e.id})">❌</button>`}
       </div>
     </div>`).join('');
 }
@@ -1872,8 +2033,7 @@ function rStats(){
 // DAUERAUFTRÄGE
 // ═══════════════════════════════════════════════════════════
 function rRec(){
-  document.getElementById('rec-month-lbl').textContent=lbl();
-  document.getElementById('rec-month-lbl') && (document.getElementById('rec-month-lbl').textContent=lbl());
+  const mlbl=document.getElementById('rec-month-lbl');if(mlbl)mlbl.textContent=lbl();
   const today=new Date(),isCurMonth=today.getFullYear()===cy&&today.getMonth()+1===cm,todayDay=today.getDate();
   const activeRec=REC.filter(r=>r.active&&recDueInMonth(r,cy,cm));
   const totalMonthly=activeRec.reduce((a,r)=>a+r.amount,0);
@@ -1927,9 +2087,9 @@ function rRec(){
   }).join('');
 }
 function toggleRec(id,active){const r=REC.find(x=>x.id===id);if(r){r.active=active;save(true);rRec();toast(`${r.name}: ${active?'Aktiviert':'Pausiert'}.`);}}
-function deleteRec(id){
+async function deleteRec(id){
   const r=REC.find(x=>x.id===id);if(!r)return;
-  if(!confirm(`"${r.name}" wirklich löschen?`))return;
+  if(!(await showConfirm(`"${r.name}" wirklich löschen?`,'Löschen')))return;
   REC=REC.filter(x=>x.id!==id);save(true);rRec();toast(`${r.name} gelöscht.`);
 }
 function openRecModal(id){
@@ -1976,6 +2136,7 @@ function saveRec(){
 // TRANSACTIONS
 // ═══════════════════════════════════════════════════════════
 function addTxn(type){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const k=ck();ensure(k);
   if(type==='i'){
     const amt=parseFloat(document.getElementById('ia').value);
@@ -1992,12 +2153,14 @@ function addTxn(type){
   }
 }
 function del(type,id){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const k=ck();
   if(type==='i')D[k].income=D[k].income.filter(x=>x.id!==id);
   else D[k].expenses=D[k].expenses.filter(x=>x.id!==id);
   save();render(ap);toast('Eintrag gelöscht.');
 }
 function tf(id){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const f=document.getElementById(id),open=!f.classList.contains('open');
   f.style.display=open?'block':'none';f.classList.toggle('open',open);
   if(open){
@@ -2010,6 +2173,7 @@ function tf(id){
 // EDIT EINNAHME
 // ═══════════════════════════════════════════════════════════
 function openEditInc(id){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const e=md().income.find(x=>x.id===id);if(!e)return;
   document.getElementById('ei-id').value=id;
   document.getElementById('ei-date').value=e.date;
@@ -2037,6 +2201,7 @@ function saveEditInc(){
 // EDIT AUSGABE
 // ═══════════════════════════════════════════════════════════
 function openEditExp(id){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const e=md().expenses.find(x=>x.id===id);if(!e)return;
   document.getElementById('ee-id').value=id;
   document.getElementById('ee-date').value=e.date;
@@ -2112,10 +2277,10 @@ function addCat(type){
   else{CATS[type].push({n:val,e:selEmoji[type]||'📦'});}
   input.value='';saveCats();rSettings();toast(`"${val}" hinzugefügt ✓`);
 }
-function deleteCat(type,idx){
+async function deleteCat(type,idx){
   const item=CATS[type][idx];
   const name=typeof item==='object'?item.n:item;
-  if(!confirm(`"${name}" wirklich löschen?`))return;
+  if(!(await showConfirm(`"${name}" wirklich löschen?`,'Löschen')))return;
   CATS[type].splice(idx,1);saveCats();rSettings();toast(`"${name}" gelöscht.`);
 }
 
@@ -2141,9 +2306,9 @@ function addPerson(){
   PERSONS.push(val);input.value='';
   save(true);renderPersonList();rDash();toast(`${val} hinzugefügt ✓`);
 }
-function deletePerson(idx){
+async function deletePerson(idx){
   const name=PERSONS[idx];
-  if(!confirm(`"${name}" wirklich entfernen?`))return;
+  if(!(await showConfirm(`"${name}" wirklich entfernen?`,'Entfernen')))return;
   PERSONS.splice(idx,1);save(true);renderPersonList();rDash();toast(`${name} entfernt.`);
 }
 function renderPersonSplit(restBudget){
@@ -2181,7 +2346,8 @@ function recIncAlreadyBooked(r,y,m){
   const d=D[mk(y,m)]||{income:[]};
   return d.income.some(e=>e.recIncId===r.id);
 }
-function autoBookRecInc(){
+function transferAllRecInc(){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const k=ck();ensure(k);let booked=[];
   REC_INC.forEach(r=>{
     if(!r.active)return;
@@ -2190,10 +2356,17 @@ function autoBookRecInc(){
     if(recIncAlreadyBooked(r,cy,cm))return;
     const day=Math.min(r.day,new Date(cy,cm,0).getDate());
     const date=`${cy}-${String(cm).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    // Nutzt die AKTUELLEN Werte aus r (falls zuvor angepasst)
     D[k].income.push({id:Date.now()+Math.random(),date,cat:r.cat,amount:r.amount,note:r.note||r.name,recIncId:r.id,recIncName:r.name});
     booked.push(r.name);
   });
-  if(booked.length){save();return booked;}return[];
+  if(booked.length){
+    save();rDash();rInc();
+    toast(`${booked.length} Einnahme${booked.length>1?'n':''} übertragen: ${booked.join(', ')}`);
+  } else {
+    toast('Nichts zum Übertragen bereit.');
+  }
+  return booked;
 }
 function renderRecIncList(){
   const el=document.getElementById('recIncList');if(!el)return;
@@ -2220,6 +2393,7 @@ function renderRecIncList(){
   }).join('');
 }
 function bookRecInc(id){
+  if(isMonthClosed()){toast('🔒 Monat ist abgeschlossen — bitte zuerst wieder aktivieren.');return;}
   const r=REC_INC.find(x=>x.id===id);if(!r)return;
   if(recIncAlreadyBooked(r,cy,cm)){toast('Bereits gebucht!');return;}
   const k=ck();ensure(k);
@@ -2263,9 +2437,9 @@ function saveRecInc(){
   else{data.id=Date.now();REC_INC.push(data);toast(`${name} gespeichert.`);}
   save(true);closeRecIncModal();renderRecIncList();rInc();
 }
-function deleteRecInc(id){
+async function deleteRecInc(id){
   const r=REC_INC.find(x=>x.id===id);if(!r)return;
-  if(!confirm(`"${r.name}" wirklich löschen?`))return;
+  if(!(await showConfirm(`"${r.name}" wirklich löschen?`,'Löschen')))return;
   REC_INC=REC_INC.filter(x=>x.id!==id);save(true);renderRecIncList();rInc();toast(`${r.name} gelöscht.`);
 }
 

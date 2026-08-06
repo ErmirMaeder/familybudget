@@ -589,6 +589,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button class="desk-tab" id="dt-income" onclick="go('income')">📈 Einnahmen</button>
     <button class="desk-tab" id="dt-expenses" onclick="go('expenses')">📉 Ausgaben</button>
     <button class="desk-tab" id="dt-overview" onclick="go('overview')">📅 Jahresübersicht</button>
+    <button class="desk-tab" id="dt-stats" onclick="go('stats')">📊 Statistiken</button>
     <button class="desk-tab" id="dt-settings" onclick="go('settings')">⚙️ Einstellungen</button>
     <button class="desk-tab" id="dt-help" onclick="go('help')">❓ Hilfe</button>
     <div style="flex:1"></div>
@@ -896,6 +897,16 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
               <input type="text" id="newPay" placeholder="Neue Zahlungsart…" onkeydown="if(event.key==='Enter')addCat('pay')"
                 style="flex:1;background:none;border:none;outline:none;font-size:17px;color:var(--ios-label);font-family:inherit">
               <button onclick="addCat('pay')" style="color:var(--ios-blue);background:none;border:none;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit">+</button>
+            </div>
+          </div>
+        </div>
+        <!-- Auswertung -->
+        <div class="ios-section">
+          <div class="ios-section-header">📊 Auswertung</div>
+          <div class="ios-list">
+            <div class="ios-row ios-row-tappable" onclick="go('stats')">
+              <div class="ios-row-label">Statistiken & CSV-Export</div>
+              <div class="ios-row-chevron">›</div>
             </div>
           </div>
         </div>
@@ -1454,7 +1465,6 @@ async function syncNow(){
 // SHOW APP
 // ═══════════════════════════════════════════════════════════
 function showApp(){
-  const app=document.getElementById('app');
   // brandFamily wird beim Dashboard-Rendering aktualisiert (siehe rDash)
   // Show month selection screen instead of jumping straight to dashboard
   showMonthSelect();
@@ -1499,11 +1509,15 @@ function confirmMonthSelect(useToday){
 // ═══════════════════════════════════════════════════════════
 // AUTO-LOGOUT BEI INAKTIVITÄT
 // ═══════════════════════════════════════════════════════════
-let inactivityTimer=null;
 let autoLogoutMinutes=0; // 0 = deaktiviert
 
 let lastActivityTime=Date.now();
 let inactivityCheckInterval=null;
+let inactivityListenersAttached=false;
+// Warn-Countdown vor der Abmeldung
+const LOGOUT_WARN_SECONDS=20;
+let logoutWarnOverlay=null;
+let logoutDeadline=0;
 
 function getAutoLogoutTime(){
   try{ return parseInt(localStorage.getItem('fb_auto_logout_min')||'0'); }catch{ return 0; }
@@ -1511,65 +1525,84 @@ function getAutoLogoutTime(){
 function setAutoLogoutTime(minutes){
   autoLogoutMinutes=parseInt(minutes)||0;
   try{ localStorage.setItem('fb_auto_logout_min', String(autoLogoutMinutes)); }catch{}
+  dismissLogoutWarning();
   lastActivityTime=Date.now();
   toast(autoLogoutMinutes===0?'Automatische Abmeldung deaktiviert':`Automatische Abmeldung nach ${minutes} Min. aktiviert`);
 }
-function markActivity(){ lastActivityTime=Date.now(); }
+// Aktivität zählt nur, solange KEIN Warndialog offen ist — sonst müsste
+// der Dialog aktiv bestätigt werden (siehe Anforderung "wenn 20s ignoriert").
+function markActivity(){ if(!logoutWarnOverlay) lastActivityTime=Date.now(); }
+
+// Warndialog anzeigen (nur einmal); danach läuft der 20-Sekunden-Countdown
+function showLogoutWarning(){
+  if(logoutWarnOverlay) return;
+  logoutDeadline=Date.now()+LOGOUT_WARN_SECONDS*1000;
+  const overlay=document.createElement('div');
+  overlay.className='sheet-overlay';
+  overlay.style.zIndex='10000';
+  overlay.innerHTML=`<div class="sheet" style="max-width:360px">
+    <div class="sheet-handle"></div>
+    <div style="padding:20px 20px 8px;text-align:center">
+      <div style="font-size:44px;margin-bottom:8px">🔒</div>
+      <div style="font-size:18px;font-weight:700;color:var(--ios-label);margin-bottom:6px">Noch da?</div>
+      <div style="font-size:15px;color:var(--ios-label2);line-height:1.5">Du warst länger inaktiv. Aus Sicherheitsgründen wirst du in <strong id="logoutCountdown">${LOGOUT_WARN_SECONDS}</strong> Sekunden automatisch abgemeldet.</div>
+    </div>
+    <button class="sheet-btn sheet-btn-blue" id="stayLoggedInBtn">Angemeldet bleiben</button>
+    <button class="sheet-btn sheet-btn-gray" id="logoutNowBtn">Jetzt abmelden</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  logoutWarnOverlay=overlay;
+  overlay.querySelector('#stayLoggedInBtn').onclick=()=>dismissLogoutWarning();
+  overlay.querySelector('#logoutNowBtn').onclick=()=>{dismissLogoutWarning();doLogout();};
+}
+function dismissLogoutWarning(){
+  if(logoutWarnOverlay){ logoutWarnOverlay.remove(); logoutWarnOverlay=null; }
+  lastActivityTime=Date.now();
+}
+
+function markActivityInit(){
+  if(inactivityListenersAttached) return;
+  inactivityListenersAttached=true;
+  ['click','touchstart','keydown','mousemove','scroll'].forEach(evt=>{
+    document.addEventListener(evt, markActivity, {passive:true});
+  });
+  // Beim Zurückkehren in den Tab sofort prüfen (Intervall kann im Hintergrund pausiert sein)
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible') checkInactivity();
+  });
+}
+function checkInactivity(){
+  if(!currentUser||!autoLogoutMinutes||autoLogoutMinutes<=0){
+    if(logoutWarnOverlay) dismissLogoutWarning();
+    return;
+  }
+  if(logoutWarnOverlay){
+    const remain=Math.max(0,Math.ceil((logoutDeadline-Date.now())/1000));
+    const cd=document.getElementById('logoutCountdown');
+    if(cd) cd.textContent=remain;
+    if(Date.now()>=logoutDeadline){ dismissLogoutWarning(); doLogout(); }
+    return;
+  }
+  if(Date.now()-lastActivityTime>=autoLogoutMinutes*60*1000){
+    showLogoutWarning();
+  }
+}
 function startInactivityTimer(){
   autoLogoutMinutes=getAutoLogoutTime();
   const sel=document.getElementById('autoLogoutSelect');
   if(sel) sel.value=String(autoLogoutMinutes);
   lastActivityTime=Date.now();
-  ['click','touchstart','keydown','mousemove','scroll'].forEach(evt=>{
-    document.addEventListener(evt, markActivity, {passive:true});
-  });
-  // Zeitstempel-basierte Prüfung — robust auch bei Hintergrund-Tabs/Standby
+  markActivityInit();
+  // Sekündliche Prüfung — robust auch bei Hintergrund-Tabs/Standby, feiner Countdown
   clearInterval(inactivityCheckInterval);
-  inactivityCheckInterval=setInterval(()=>{
-    if(!currentUser||!autoLogoutMinutes||autoLogoutMinutes<=0) return;
-    const elapsed=Date.now()-lastActivityTime;
-    if(elapsed>=autoLogoutMinutes*60*1000){
-      toast('Automatisch abgemeldet wegen Inaktivität');
-      setTimeout(()=>doLogout(),800);
-    }
-  },5000);
-  // Zusätzlich beim Zurückkehren in den Tab sofort neu prüfen (falls Intervall pausiert war)
-  document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible'&&currentUser&&autoLogoutMinutes>0){
-      const elapsed=Date.now()-lastActivityTime;
-      if(elapsed>=autoLogoutMinutes*60*1000){
-        toast('Automatisch abgemeldet wegen Inaktivität');
-        setTimeout(()=>doLogout(),800);
-      }
-    }
-  });
+  inactivityCheckInterval=setInterval(checkInactivity,1000);
 }
-function resetInactivityTimer(){ lastActivityTime=Date.now(); }
 function stopInactivityTimer(){
   clearInterval(inactivityCheckInterval);
+  dismissLogoutWarning();
 }
 
 function hideSplash(){document.getElementById('splash').style.display='none';}
-
-
-
-// ═══════════════════════════════════════════════════════════
-// HAMBURGER MENU (mobile)
-// ═══════════════════════════════════════════════════════════
-function openHam(){
-  const el=document.getElementById('hamMenu'); if(!el)return;
-  el.classList.add('open');
-  document.getElementById('hamFamilyLbl').textContent=currentFamily?.name||'';
-  updateHamMon();
-}
-function closeHam(){ document.getElementById('hamMenu').classList.remove('open'); }
-function updateHamMon(){ const el=document.getElementById('hamMonLbl'); if(el) el.textContent=MS[cm-1]+' '+cy; }
-function hamGo(p){
-  closeHam();
-  go(p);
-  document.querySelectorAll('.ham-item').forEach(x=>x.classList.remove('active'));
-  const el=document.getElementById('hm-'+p); if(el) el.classList.add('active');
-}
 
 // ═══════════════════════════════════════════════════════════
 // USER MENU
@@ -1704,9 +1737,8 @@ function updMon(){
   const label=MS[cm-1]+' '+cy;
   const el=document.getElementById('mnlbl-txt');if(el)el.textContent=label;
   const el2=document.getElementById('mnlbl2');if(el2)el2.textContent=label;
-  const el3=document.getElementById('hamMonLbl');if(el3)el3.textContent=label;
   // Show/hide "Heute" buttons — only visible when NOT on current month
-  ['todayBtnDesktop','todayBtnMobile','todayBtnHam'].forEach(id=>{
+  ['todayBtnDesktop','todayBtnMobile'].forEach(id=>{
     const btn=document.getElementById(id);
     if(!btn) return;
     btn.style.display=isCur?'none':'inline-flex';
@@ -1771,12 +1803,9 @@ function renderPicker(){
 function go(p){
   ap=p;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ios-tab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.desk-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('pg-'+p).classList.add('active');
-  const idx={dash:0,income:1,expenses:2,overview:3,stats:4,settings:5,help:6}[p]||0;
-  document.querySelectorAll('.ntab')[idx]?.classList.add('active');
   const bn=document.getElementById('tab-'+p);if(bn)bn.classList.add('active');
   const dt=document.getElementById('dt-'+p);if(dt)dt.classList.add('active');
   document.getElementById('mainScroll').scrollTo(0,0);
@@ -1801,12 +1830,12 @@ function rDash(){
   const notice=document.getElementById('rec-auto-notice');
   const noticeInc=document.getElementById('rec-inc-notice');
   if(pendingExp.length){
-    notice.style.display='block';notice.className='ios-notice ios-notice-orange';
-    notice.innerHTML=`<span class="ios-notice-dot"></span><span style="flex:1">🔁 <strong>${pendingExp.length} Dauerauftrag${pendingExp.length>1?'äge':''} bereit:</strong> ${pendingExp.map(r=>r.name).join(', ')}</span><button onclick="transferAllRecExp()" style="background:var(--ios-blue);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">Übertragen</button>`;
+    notice.style.display='flex';notice.className='ios-notice ios-notice-orange';notice.style.justifyContent='space-between';
+    notice.innerHTML=`<span class="ios-notice-dot"></span><span style="flex:1">🔁 <strong>${pendingExp.length} Dauerauftrag${pendingExp.length>1?'äge':''} bereit:</strong> ${pendingExp.map(r=>r.name).join(', ')}</span><button onclick="transferAllRecExp()" style="background:var(--ios-blue);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;margin-left:auto">Übernehmen</button>`;
   } else {notice.style.display='none';}
   if(pendingInc.length){
-    noticeInc.style.display='block';noticeInc.className='ios-notice ios-notice-green';
-    noticeInc.innerHTML=`<span class="ios-notice-dot"></span><span style="flex:1">💰 <strong>${pendingInc.length} Einnahme${pendingInc.length>1?'n':''} bereit:</strong> ${pendingInc.map(r=>r.name).join(', ')}</span><button onclick="transferAllRecInc()" style="background:var(--ios-green);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">Übertragen</button>`;
+    noticeInc.style.display='flex';noticeInc.className='ios-notice ios-notice-green';noticeInc.style.justifyContent='space-between';
+    noticeInc.innerHTML=`<span class="ios-notice-dot"></span><span style="flex:1">💰 <strong>${pendingInc.length} Einnahme${pendingInc.length>1?'n':''} bereit:</strong> ${pendingInc.map(r=>r.name).join(', ')}</span><button onclick="transferAllRecInc()" style="background:var(--ios-green);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;margin-left:auto">Übernehmen</button>`;
   } else {noticeInc.style.display='none';}
   const t=ttl(ck());
   const pct=t.i>0?Math.min(100,Math.round(t.s/t.i*100)):0;
@@ -2175,7 +2204,7 @@ function rSettings(){
 }
 function renderEmojiPicker(elId,type){
   const el=document.getElementById(elId);if(!el)return;
-  el.innerHTML=ALL_EMOJIS.map(e=>`<button onclick="pickEmoji('${type}','${e}')" style="width:36px;height:36px;border-radius:8px;border:2px solid ${selEmoji[type]===e?'var(--blue)':'transparent'};background:${selEmoji[type]===e?'var(--bbg)':'var(--card)'};cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">${e}</button>`).join('');
+  el.innerHTML=ALL_EMOJIS.map(e=>`<button class="emoji-btn${selEmoji[type]===e?' sel':''}" onclick="pickEmoji('${type}','${e}')">${e}</button>`).join('');
 }
 function pickEmoji(type,emoji){
   selEmoji[type]=emoji;
@@ -2186,7 +2215,7 @@ function pickEmoji(type,emoji){
 function renderCatList(elId,type){
   const el=document.getElementById(elId);if(!el)return;
   const items=CATS[type]||[];
-  if(!items.length){el.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px 0;font-style:italic">Keine Einträge</div>`;return;}
+  if(!items.length){el.innerHTML=`<div style="font-size:12px;color:var(--ios-label2);padding:8px 0;font-style:italic">Keine Einträge</div>`;return;}
   el.innerHTML=items.map((c,i)=>{
     const name=typeof c==='object'?c.n:c;
     const emoji=typeof c==='object'?c.e:'';
@@ -2221,7 +2250,7 @@ async function deleteCat(type,idx){
 // ═══════════════════════════════════════════════════════════
 function renderPersonList(){
   const el=document.getElementById('personList');if(!el)return;
-  if(!PERSONS.length){el.innerHTML=`<div style="font-size:12px;color:var(--muted);font-style:italic;padding:8px 0">Noch keine Personen — füge z.B. "Ermir" und "Larissa" hinzu.</div>`;return;}
+  if(!PERSONS.length){el.innerHTML=`<div style="font-size:12px;color:var(--ios-label2);font-style:italic;padding:8px 0">Noch keine Personen — füge z.B. "Ermir" und "Larissa" hinzu.</div>`;return;}
   el.innerHTML=PERSONS.map((p,i)=>`
     <div class="ios-row">
       <div class="person-avatar" style="background:${AVATAR_COLORS[i%AVATAR_COLORS.length]}22;color:${AVATAR_COLORS[i%AVATAR_COLORS.length]};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${p[0].toUpperCase()}</div>
